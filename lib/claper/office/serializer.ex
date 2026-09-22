@@ -36,7 +36,10 @@ defmodule Claper.Office.Serializer do
       position: state.position,
       join_screen_visible: state.join_screen_visible,
       poll_visible: state.poll_visible,
-      chat_visible: state.chat_visible
+      chat_visible: state.chat_visible,
+      poll_layout: state.poll_layout,
+      poll_size: state.poll_size,
+      poll_corner: state.poll_corner
     }
   end
 

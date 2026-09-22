@@ -145,6 +145,16 @@ export class Presenter {
     const newMaxPage = parseInt(this.context.el.dataset.maxPage);
     const newPage = parseInt(this.context.el.dataset.currentPage);
     const embedActive = this.context.el.dataset.embedActive === "true";
+    const layout = this.context.el.dataset.pollLayout;
+    const size = this.context.el.style.getPropertyValue("--poll-size");
+
+    // The interaction panel layout changed: the slide area has a new size,
+    // tiny-slider must recompute its item width.
+    if (layout !== this.layout || size !== this.size) {
+      this.layout = layout;
+      this.size = size;
+      this.refreshSlider();
+    }
 
     // Toggle slider visibility for embeds (phx-update="ignore" prevents LiveView from doing it)
     const sliderEl = document.getElementById("slider");
@@ -168,6 +178,17 @@ export class Presenter {
       this.slider.goTo(newPage);
     }
     // Otherwise: unrelated DOM update (e.g. transcription text) — do nothing
+  }
+
+  refreshSlider() {
+    if (!this.slider) return;
+    // wait for the CSS transition/padding to apply, then let tns recompute
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+      if (typeof this.slider.updateSliderHeight === "function") {
+        this.slider.updateSliderHeight();
+      }
+    });
   }
 
   fullscreen() {

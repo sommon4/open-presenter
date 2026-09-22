@@ -7,6 +7,25 @@
     width: 100%;
     height: 100%;
   }
+
+  /* Make room for the interaction panel so the slide stays fully visible */
+  #presenter[data-poll-layout="side"] #slider-wrapper {
+    padding-right: var(--poll-size, 40%);
+  }
+
+  #presenter[data-poll-layout="bottom"] #slider-wrapper {
+    padding-bottom: var(--poll-size-vh, 40vh);
+  }
+
+  #presenter[data-poll-layout="bottom"] #slider img {
+    max-height: calc(100vh - var(--poll-size-vh, 40vh));
+  }
+
+  #slider img {
+    max-width: 100%;
+    object-fit: contain;
+    margin: 0 auto;
+  }
 </style>
 
 <div
@@ -16,6 +35,7 @@
   data-hash={@event.presentation_file.hash}
   data-current-page={@state.position}
   data-embed-active={if @current_embed, do: "true", else: "false"}
+  {ClaperWeb.EventLive.PresenterPanelComponent.presenter_attrs(@state)}
 >
   <!-- JOIN SCREEN -->
   <div
@@ -45,30 +65,35 @@
   </div>
   <!-- POLL -->
   <%= if @current_poll do %>
-    <div
-      id="poll"
-      class={"#{if @state.poll_visible, do: "opacity-100", else: "opacity-0 pointer-events-none"} h-full w-full flex flex-col justify-center bg-black/90 absolute z-30 left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 p-10 transition-opacity"}
-    >
-      <div class="w-full md:w-1/2 mx-auto h-full">
-        <p class={"#{if @iframe, do: "text-xl mb-12", else: "text-5xl mb-24"} text-white font-bold  text-center"}>
+    <% compact = ClaperWeb.EventLive.PresenterPanelComponent.compact?(@state, @iframe) %>
+    <% bottom = ClaperWeb.EventLive.PresenterPanelComponent.layout(@state) == "bottom" %>
+    <ClaperWeb.EventLive.PresenterPanelComponent.panel id="poll" state={@state}>
+      <div class={"#{if compact, do: "w-full", else: "w-full md:w-1/2"} mx-auto my-auto flex flex-col min-h-0 max-h-full overflow-y-auto"}>
+        <p class={"#{if compact, do: "text-xl mb-4", else: "text-5xl mb-24"} text-white font-bold text-center shrink-0"}>
           {@current_poll.title}
         </p>
 
-        <div class={"#{if @iframe, do: "space-y-5", else: "space-y-8"} flex flex-col"}>
+        <div class={
+          cond do
+            bottom -> "grid grid-cols-2 gap-2"
+            compact -> "space-y-2 flex flex-col"
+            true -> "space-y-8 flex flex-col"
+          end
+        }>
           <%= if (length @current_poll.poll_opts) > 0 do %>
             <%= for opt <- @current_poll.poll_opts do %>
-              <div class={"#{if @iframe, do: "py-1", else: "py-4"} bg-gray-500 px-6 rounded-3xl flex justify-between items-center relative text-white"}>
+              <div class={"#{if compact, do: "py-1", else: "py-4"} bg-gray-500 px-6 rounded-3xl flex justify-between items-center relative text-white"}>
                 <div
                   style={"width: #{opt.percentage}%;"}
                   class="bg-primary rounded-3xl h-full absolute left-0 transition-all"
                 >
                 </div>
                 <div class="flex space-x-3 z-10 text-left">
-                  <span class={"#{if @iframe, do: "text-base", else: "text-2xl"} flex-1 font-bold pr-2"}>
+                  <span class={"#{if compact, do: "text-base", else: "text-2xl"} flex-1 font-bold pr-2"}>
                     {opt.content}
                   </span>
                 </div>
-                <span class={"#{if @iframe, do: "text-base", else: "text-2xl"} z-10 font-bold"}>
+                <span class={"#{if compact, do: "text-base", else: "text-2xl"} z-10 font-bold whitespace-nowrap"}>
                   {opt.percentage}% ({opt.vote_count})
                 </span>
               </div>
@@ -76,38 +101,34 @@
           <% end %>
         </div>
       </div>
-    </div>
+    </ClaperWeb.EventLive.PresenterPanelComponent.panel>
   <% end %>
   <!-- WORD CLOUD -->
   <%= if @current_word_cloud do %>
-    <div
-      id="word-cloud"
-      class={"#{if @state.poll_visible, do: "opacity-100", else: "opacity-0 pointer-events-none"} h-full w-full flex flex-col justify-center bg-black/90 absolute z-30 left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 p-10 transition-opacity"}
-    >
-      <div class="w-full h-full flex flex-col">
-        <p class={"#{if @iframe, do: "text-xl mb-4", else: "text-5xl mb-10"} text-white font-bold text-center shrink-0"}>
+    <% compact = ClaperWeb.EventLive.PresenterPanelComponent.compact?(@state, @iframe) %>
+    <ClaperWeb.EventLive.PresenterPanelComponent.panel id="word-cloud" state={@state}>
+      <div class="w-full h-full flex flex-col min-h-0">
+        <p class={"#{if compact, do: "text-xl mb-2", else: "text-5xl mb-10"} text-white font-bold text-center shrink-0"}>
           {@current_word_cloud.title}
         </p>
         <ClaperWeb.EventLive.WordCloudCloudComponent.cloud
           id={"presenter-word-cloud-#{@current_word_cloud.id}"}
           words={@current_word_cloud.words || []}
-          class="flex-1 min-h-0 text-white"
+          class={"flex-1 min-h-0 text-white #{if compact, do: "min-h-[8rem]"}"}
           empty={gettext("Waiting for answers...")}
         />
-        <p class={"#{if @iframe, do: "text-sm mt-2", else: "text-2xl mt-6"} text-gray-400 font-semibold text-center shrink-0"}>
+        <p class={"#{if compact, do: "text-sm mt-1", else: "text-2xl mt-6"} text-gray-400 font-semibold text-center shrink-0"}>
           {ngettext("%{count} answer", "%{count} answers", @current_word_cloud.total || 0)}
         </p>
       </div>
-    </div>
+    </ClaperWeb.EventLive.PresenterPanelComponent.panel>
   <% end %>
   <!-- OPEN ENDED -->
   <%= if @current_open_ended do %>
-    <div
-      id="open-ended"
-      class={"#{if @state.poll_visible, do: "opacity-100", else: "opacity-0 pointer-events-none"} h-full w-full flex flex-col justify-center bg-black/90 absolute z-30 left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 p-10 transition-opacity"}
-    >
-      <div class="w-full h-full flex flex-col">
-        <p class={"#{if @iframe, do: "text-xl mb-4", else: "text-5xl mb-10"} text-white font-bold text-center shrink-0"}>
+    <% compact = ClaperWeb.EventLive.PresenterPanelComponent.compact?(@state, @iframe) %>
+    <ClaperWeb.EventLive.PresenterPanelComponent.panel id="open-ended" state={@state}>
+      <div class="w-full h-full flex flex-col min-h-0">
+        <p class={"#{if compact, do: "text-xl mb-2", else: "text-5xl mb-10"} text-white font-bold text-center shrink-0"}>
           {@current_open_ended.title}
         </p>
         <ClaperWeb.EventLive.OpenEndedCardsComponent.cards
@@ -115,14 +136,14 @@
           responses={@current_open_ended.responses || []}
           auto_scroll={@current_open_ended.auto_scroll}
           voting={@current_open_ended.voting_enabled}
-          compact={@iframe}
-          class="flex-1 min-h-0"
+          compact={compact}
+          class={"flex-1 min-h-0 #{if compact, do: "min-h-[8rem]"}"}
         />
-        <p class={"#{if @iframe, do: "text-sm mt-2", else: "text-2xl mt-6"} text-gray-400 font-semibold text-center shrink-0"}>
+        <p class={"#{if compact, do: "text-sm mt-1", else: "text-2xl mt-6"} text-gray-400 font-semibold text-center shrink-0"}>
           {ngettext("%{count} response", "%{count} responses", @current_open_ended.total || 0)}
         </p>
       </div>
-    </div>
+    </ClaperWeb.EventLive.PresenterPanelComponent.panel>
   <% end %>
   <!-- QUIZ -->
   <%= if @current_quiz do %>

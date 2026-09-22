@@ -899,6 +899,36 @@ defmodule ClaperWeb.EventLive.Manage do
   end
 
   @impl true
+  def handle_event("poll-layout", %{"layout" => layout}, %{assigns: %{state: state}} = socket) do
+    update_layout(socket, state, %{poll_layout: layout})
+  end
+
+  @impl true
+  def handle_event("poll-corner", %{"corner" => corner}, %{assigns: %{state: state}} = socket) do
+    update_layout(socket, state, %{poll_corner: corner})
+  end
+
+  @impl true
+  def handle_event("poll-size", %{"size" => size}, %{assigns: %{state: state}} = socket) do
+    case Integer.parse(to_string(size)) do
+      {value, _} -> update_layout(socket, state, %{poll_size: value})
+      :error -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("poll-reset", %{"id" => id}, socket) do
+    case Polls.get_poll_for_event(id, event_id(socket)) do
+      nil ->
+        {:noreply, socket}
+
+      poll ->
+        {:ok, _} = Polls.reset_votes(socket.assigns.event.uuid, poll)
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("open-ended-reset", %{"id" => id}, socket) do
     case OpenEnded.get_open_ended_for_event(id, event_id(socket)) do
       nil ->
@@ -1750,5 +1780,12 @@ defmodule ClaperWeb.EventLive.Manage do
 
   defp thumbnail_cache_bust do
     System.system_time(:second)
+  end
+
+  defp update_layout(socket, state, attrs) do
+    case Claper.Presentations.update_presentation_state(state, attrs) do
+      {:ok, new_state} -> {:noreply, assign(socket, :state, new_state)}
+      {:error, _changeset} -> {:noreply, socket}
+    end
   end
 end

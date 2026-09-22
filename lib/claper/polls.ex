@@ -304,6 +304,34 @@ defmodule Claper.Polls do
     end
   end
 
+  @doc """
+  Deletes every vote of a poll and sets all option counters to zero, so
+  every attendee can vote again. Broadcasts `:poll_updated`.
+
+  ## Examples
+
+      iex> reset_votes(event_uuid, poll)
+      {:ok, %Poll{}}
+
+  """
+  def reset_votes(event_uuid, %Poll{} = poll) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:votes, from(v in PollVote, where: v.poll_id == ^poll.id))
+    |> Ecto.Multi.update_all(
+      :opts,
+      from(o in PollOpt, where: o.poll_id == ^poll.id),
+      set: [vote_count: 0]
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} ->
+        broadcast({:ok, get_poll!(poll.id), event_uuid}, :poll_updated)
+
+      {:error, _step, reason, _} ->
+        {:error, reason}
+    end
+  end
+
   def disable_all(presentation_file_id, position) do
     from(p in Poll,
       where: p.presentation_file_id == ^presentation_file_id and p.position == ^position

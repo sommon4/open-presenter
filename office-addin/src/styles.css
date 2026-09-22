@@ -194,7 +194,7 @@ body,
 }
 
 .header .title {
-  font-size: clamp(16px, 5cqh, 40px);
+  font-size: calc(clamp(16px, 5cqh, 40px) * var(--scale, 1));
   margin: 0 0 8px;
   line-height: 1.2;
 }
@@ -235,7 +235,7 @@ body,
   border-radius: 10px;
   background: #f3f4f6;
   overflow: hidden;
-  font-size: clamp(12px, 3.5cqh, 26px);
+  font-size: calc(clamp(12px, 3.5cqh, 26px) * var(--scale, 1));
   font-weight: 600;
 }
 
@@ -256,6 +256,11 @@ body,
   z-index: 1;
 }
 
+.poll-value {
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
 .quiz {
   display: flex;
   flex-direction: column;
@@ -264,7 +269,7 @@ body,
 }
 
 .quiz-title {
-  font-size: clamp(13px, 3.5cqh, 24px);
+  font-size: calc(clamp(13px, 3.5cqh, 24px) * var(--scale, 1));
   margin: 0 0 6px;
 }
 
@@ -319,7 +324,7 @@ body,
 .card-text {
   margin: 0;
   font-weight: 600;
-  font-size: clamp(12px, 3cqh, 22px);
+  font-size: calc(clamp(12px, 3cqh, 22px) * var(--scale, 1));
   overflow-wrap: anywhere;
 }
 
@@ -338,7 +343,7 @@ body,
 }
 
 .big-number {
-  font-size: clamp(32px, 20cqh, 120px);
+  font-size: calc(clamp(32px, 20cqh, 120px) * var(--scale, 1));
   font-weight: 800;
   margin: 0;
 }
@@ -371,7 +376,7 @@ body,
 }
 
 .join-big .join-label {
-  font-size: clamp(14px, 4cqh, 32px);
+  font-size: calc(clamp(14px, 4cqh, 32px) * var(--scale, 1));
 }
 
 .join-url {
@@ -380,7 +385,7 @@ body,
 }
 
 .join-big .join-url {
-  font-size: clamp(14px, 4cqh, 32px);
+  font-size: calc(clamp(14px, 4cqh, 32px) * var(--scale, 1));
 }
 
 .join-code {
@@ -390,7 +395,7 @@ body,
 }
 
 .join-big .join-code {
-  font-size: clamp(28px, 12cqh, 96px);
+  font-size: calc(clamp(28px, 12cqh, 96px) * var(--scale, 1));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -399,5 +404,136 @@ body,
   .poll-bar {
     animation: none;
     transition: none;
+  }
+}
+
+/* ---------- appearance settings (per add-in instance) ---------- */
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.field select,
+.field input[type="range"] {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.live[data-show-title="false"] .header {
+  display: none;
+}
+
+.live[data-show-join="false"] .join:not(.join-big) {
+  display: none;
+}
+
+.live[data-hide-chrome="true"] .status {
+  display: none;
+}
+
+.live[data-hide-chrome="true"] .gear {
+  opacity: 0;
+}
+
+.live[data-hide-chrome="true"]:hover .gear {
+  opacity: 0.6;
+}
+
+.live[data-hide-chrome="true"] .content {
+  padding-top: 12px;
+}
+
+body[data-theme="dark"],
+.live[data-theme="dark"] {
+  --bg: #0b0f19;
+  --fg: #f9fafb;
+  --muted: #9ca3af;
+  --primary: #a78bfa;
+  --primary-soft: #4c1d95;
+  --border: #374151;
+}
+
+.live[data-theme="dark"] .poll-row {
+  background: #1f2937;
+}
+
+.live[data-theme="dark"] .card {
+  background: #111827;
+}
+
+.live[data-theme="dark"] .status {
+  background: #1f2937;
+}
+
+.live[data-theme="dark"] .join-qr {
+  background: #fff;
+  padding: 4px;
+}
+
+/* ---------- small frames: the add-in was resized on the slide ---------- */
+
+/* short frame: tighten everything and drop the join panel */
+@container (max-height: 260px) {
+  .content {
+    padding: 22px 10px 6px;
+  }
+
+  .header .title {
+    margin-bottom: 4px;
+  }
+
+  .poll,
+  .quiz-question {
+    gap: 4px;
+  }
+
+  .poll-row {
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .join:not(.join-big) {
+    display: none;
+  }
+
+  .cards {
+    gap: 6px;
+  }
+
+  .card {
+    padding: 6px 8px;
+  }
+}
+
+/* very short frame: only the results */
+@container (max-height: 150px) {
+  .header {
+    display: none;
+  }
+
+  .content {
+    padding-top: 8px;
+  }
+}
+
+/* narrow frame: stack the join panel text under the QR code */
+@container (max-width: 320px) {
+  .join:not(.join-big) {
+    display: none;
+  }
+}
+
+/* wide and short frame: two columns of options */
+@container (min-aspect-ratio: 2.2 / 1) {
+  .poll,
+  .quiz-question {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
 }

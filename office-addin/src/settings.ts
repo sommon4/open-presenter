@@ -12,12 +12,32 @@
 // NOTE: the exact persistence behaviour must be verified against the current
 // PowerPoint builds during the sideload tests (see docs/office-addin.md).
 
+export interface Appearance {
+  theme: "light" | "dark";
+  /** font scale in percent (50–200) */
+  scale: number;
+  showTitle: boolean;
+  /** QR code + join code under the interaction */
+  showJoin: boolean;
+  /** hide the "live" pill; the gear only shows on hover */
+  hideChrome: boolean;
+}
+
+export const DEFAULT_APPEARANCE: Appearance = {
+  theme: "light",
+  scale: 100,
+  showTitle: true,
+  showJoin: true,
+  hideChrome: false,
+};
+
 export interface AddinConfig {
   serverUrl: string;
   token: string;
   eventId: string | null;
   interactionId: string | null; // "poll_12", "word_cloud_3", ... or "join_screen"
   eventName?: string;
+  appearance?: Appearance;
 }
 
 const KEY = "openPresenter";
@@ -42,11 +62,12 @@ export function loadConfig(): AddinConfig {
     eventId: stored?.eventId ?? null,
     interactionId: stored?.interactionId ?? null,
     eventName: stored?.eventName,
+    appearance: { ...DEFAULT_APPEARANCE, ...(defaults.appearance ?? {}), ...(stored?.appearance ?? {}) },
   };
 }
 
 export function saveConfig(config: AddinConfig): Promise<void> {
-  writeLocal({ serverUrl: config.serverUrl, token: config.token });
+  writeLocal({ serverUrl: config.serverUrl, token: config.token, appearance: config.appearance });
   const settings = officeSettings();
   if (!settings) return Promise.resolve();
 

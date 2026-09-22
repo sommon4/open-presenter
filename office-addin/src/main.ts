@@ -8,7 +8,7 @@
 import { Api, ApiError, type ApiEvent, type Interaction, type Post } from "./api";
 import { Realtime, type ConnectionState } from "./realtime";
 import { clear, el, renderInteraction, renderJoinPanel, renderPosts } from "./renderer";
-import { defaultServerUrl, loadConfig, saveConfig, type AddinConfig } from "./settings";
+import { DEFAULT_APPEARANCE, defaultServerUrl, loadConfig, saveConfig, type AddinConfig, type Appearance } from "./settings";
 
 const JOIN_SCREEN = "join_screen";
 const QA = "qa";
@@ -154,6 +154,114 @@ class App {
     }
   }
 
+  private appearance(): Appearance {
+    return { ...DEFAULT_APPEARANCE, ...(this.config.appearance ?? {}) };
+  }
+
+  private applyAppearance(live: HTMLElement) {
+    const a = this.appearance();
+    live.dataset.theme = a.theme;
+    live.dataset.showTitle = String(a.showTitle);
+    live.dataset.showJoin = String(a.showJoin);
+    live.dataset.hideChrome = String(a.hideChrome);
+    live.style.setProperty("--scale", String(Math.max(50, Math.min(200, a.scale)) / 100));
+    document.body.dataset.theme = a.theme;
+  }
+
+  private showMenu() {
+    const screen = this.screen("Settings");
+    const list = el("div", "list");
+    const item = (title: string, sub: string, onClick: () => void) => {
+      const b = el("button", "list-item");
+      b.type = "button";
+      b.appendChild(el("span", "list-title", title));
+      b.appendChild(el("span", "list-sub", sub));
+      b.addEventListener("click", onClick);
+      list.appendChild(b);
+    };
+    item("Change interaction", "Show another poll, word cloud, question or the join screen", () => this.showInteractions());
+    item("Appearance", "Size, colours, title and QR code", () => this.showAppearance());
+    item("Server and token", "Connect to another Open Presenter server", () => this.showSetup());
+    screen.appendChild(list);
+    screen.appendChild(linkButton("Back", () => this.showLive()));
+  }
+
+  private showAppearance() {
+    const screen = this.screen("Appearance");
+    screen.appendChild(
+      el("p", "muted", "Resize the add-in on the slide with its corner handles. These settings change what is shown inside it."),
+    );
+    const a = this.appearance();
+    const form = el("form", "form");
+
+    const scaleWrap = el("label", "field");
+    scaleWrap.appendChild(el("span", "field-label", `Text size: ${a.scale}%`));
+    const scale = el("input");
+    scale.type = "range";
+    scale.min = "50";
+    scale.max = "200";
+    scale.step = "10";
+    scale.value = String(a.scale);
+    scale.addEventListener("input", () => {
+      scaleWrap.querySelector(".field-label")!.textContent = `Text size: ${scale.value}%`;
+    });
+    scaleWrap.appendChild(scale);
+    form.appendChild(scaleWrap);
+
+    const themeWrap = el("label", "field");
+    themeWrap.appendChild(el("span", "field-label", "Colours"));
+    const theme = el("select");
+    for (const [value, text] of [
+      ["light", "Light (white background)"],
+      ["dark", "Dark (black background)"],
+    ]) {
+      const o = el("option", "", text);
+      o.value = value;
+      o.selected = a.theme === value;
+      theme.appendChild(o);
+    }
+    themeWrap.appendChild(theme);
+    form.appendChild(themeWrap);
+
+    const check = (text: string, checked: boolean) => {
+      const wrap = el("label", "check");
+      const box = el("input");
+      box.type = "checkbox";
+      box.checked = checked;
+      wrap.appendChild(box);
+      wrap.appendChild(el("span", "", text));
+      form.appendChild(wrap);
+      return box;
+    };
+    const showTitle = check("Show the question title", a.showTitle);
+    const showJoin = check("Show the QR code and join code", a.showJoin);
+    const hideChrome = check("Hide the live badge (clean look for the slide)", a.hideChrome);
+
+    const done = button("Done", "primary");
+    form.appendChild(done);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      this.config = {
+        ...this.config,
+        appearance: {
+          theme: theme.value === "dark" ? "dark" : "light",
+          scale: Number(scale.value) || 100,
+          showTitle: showTitle.checked,
+          showJoin: showJoin.checked,
+          hideChrome: hideChrome.checked,
+        },
+      };
+      await saveConfig(this.config);
+      this.showLive();
+    });
+    screen.appendChild(form);
+    screen.appendChild(linkButton("Reset to defaults", async () => {
+      this.config = { ...this.config, appearance: { ...DEFAULT_APPEARANCE } };
+      await saveConfig(this.config);
+      this.showAppearance();
+    }));
+  }
+
   private async showLive() {
     this.realtime?.disconnect();
     clear(this.root);
@@ -162,12 +270,13 @@ class App {
     const status = el("div", "status", "");
     const gear = el("button", "gear", "⚙");
     gear.type = "button";
-    gear.title = "Change interaction";
-    gear.addEventListener("click", () => this.showInteractions());
+    gear.title = "Interaction and appearance";
+    gear.addEventListener("click", () => this.showMenu());
     live.appendChild(status);
     live.appendChild(gear);
     const content = el("div", "content");
     live.appendChild(content);
+    this.applyAppearance(live);
 
     try {
       this.event = await this.api!.event(this.config.eventId!);

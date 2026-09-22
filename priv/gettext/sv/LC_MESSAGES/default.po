@@ -26,7 +26,7 @@ msgstr "Inställningar"
 #: lib/claper_web/live/admin_live/user_live.html.heex:41
 #: lib/claper_web/live/admin_live/user_live.html.heex:116
 #: lib/claper_web/live/admin_live/user_live/form_component.ex:42
-#: lib/claper_web/live/event_live/manage.ex:1476
+#: lib/claper_web/live/event_live/manage.ex:1506
 #: lib/claper_web/live/form_live/form_component.html.heex:39
 #: lib/claper_web/live/user_settings_live/show.html.heex:68
 #: lib/claper_web/templates/user_registration/new.html.heex:86
@@ -151,7 +151,7 @@ msgstr "Inkommande"
 msgid "Leave"
 msgstr "Lämna"
 
-#: lib/claper_web/live/event_live/presenter.html.heex:27
+#: lib/claper_web/live/event_live/presenter.html.heex:47
 #: lib/claper_web/live/event_live/show.html.heex:630
 #, elixir-autogen, elixir-format
 msgid "Scan to interact in real-time"
@@ -619,7 +619,7 @@ msgstr "Formulär"
 #: lib/claper_web/live/admin_live/oidc_provider_live.html.heex:74
 #: lib/claper_web/live/admin_live/oidc_provider_live.html.heex:234
 #: lib/claper_web/live/admin_live/oidc_provider_live/form_component.ex:24
-#: lib/claper_web/live/event_live/manage.ex:1475
+#: lib/claper_web/live/event_live/manage.ex:1505
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Namn"
@@ -721,7 +721,7 @@ msgstr "Stäng"
 msgid "Enter your name"
 msgstr "Ange ditt namn"
 
-#: lib/claper_web/live/event_live/presenter.html.heex:39
+#: lib/claper_web/live/event_live/presenter.html.heex:59
 #, elixir-autogen, elixir-format
 msgid "Or go to %{url} and use the code:"
 msgstr "Eller gå till %{url} och använd koden:"
@@ -919,7 +919,7 @@ msgstr "Tillbaka"
 msgid "Finish"
 msgstr "Slutför"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:170
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:195
 #: lib/claper_web/live/event_live/quiz_component.ex:228
 #: lib/claper_web/live/event_live/quiz_component.ex:285
 #, elixir-autogen, elixir-format
@@ -1218,12 +1218,12 @@ msgstr "Ladda om sidan du försöker komma åt (skicka inte om data)"
 msgid "Try logging in again"
 msgstr "Försök logga in igen"
 
-#: lib/claper_web/live/event_live/manage.ex:1448
+#: lib/claper_web/live/event_live/manage.ex:1478
 #, elixir-autogen, elixir-format
 msgid "No"
 msgstr "Nej"
 
-#: lib/claper_web/live/event_live/manage.ex:1448
+#: lib/claper_web/live/event_live/manage.ex:1478
 #, elixir-autogen, elixir-format
 msgid "Yes"
 msgstr "Ja"
@@ -1326,7 +1326,7 @@ msgid "Hide messages"
 msgstr "Dölj meddelanden"
 
 #: lib/claper_web/live/event_live/manage_interaction_options_component.ex:45
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:87
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:112
 #, elixir-autogen, elixir-format
 msgid "Hide results on presentation"
 msgstr "Dölj svar i presentationen"
@@ -1336,7 +1336,7 @@ msgstr "Dölj svar i presentationen"
 msgid "New quiz"
 msgstr "Nytt quiz"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:148
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:173
 #, elixir-autogen, elixir-format
 msgid "Previous"
 msgstr "Föregående"
@@ -1356,7 +1356,7 @@ msgstr "Quiz"
 msgid "Remove question"
 msgstr "Ta bort fråga"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:126
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:151
 #, elixir-autogen, elixir-format
 msgid "Review questions"
 msgstr "Granska frågor"
@@ -1387,7 +1387,7 @@ msgid "Show results"
 msgstr "Visa resultat"
 
 #: lib/claper_web/live/event_live/manage_interaction_options_component.ex:46
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:88
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:113
 #, elixir-autogen, elixir-format
 msgid "Show results on presentation"
 msgstr "Visa resultat i presentationen"
@@ -2334,7 +2334,7 @@ msgstr "Senaste"
 msgid "NEWS:"
 msgstr "NYHETER:"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:558
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:587
 #, elixir-autogen, elixir-format
 msgid "No interaction enabled"
 msgstr "Ingen interaktion aktiverad"
@@ -2344,7 +2344,7 @@ msgstr "Ingen interaktion aktiverad"
 msgid "No interactions on this slide"
 msgstr "Inga interaktioner på den här bilden"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:561
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:590
 #, elixir-autogen, elixir-format
 msgid "No settings available for this interaction"
 msgstr "Inga inställningar tillgängliga för den här interaktionen"
@@ -2473,15 +2473,15 @@ msgstr "Resurs-ID"
 msgid "Resource Type"
 msgstr "Resurstyp"
 
-#: lib/claper_web/live/event_live/manage.ex:1006
-#: lib/claper_web/live/event_live/manage.ex:1009
-#: lib/claper_web/live/event_live/manage.ex:1456
-#: lib/claper_web/live/event_live/manage.ex:1499
-#: lib/claper_web/live/event_live/manage.ex:1515
-#: lib/claper_web/live/event_live/manage.ex:1557
-#: lib/claper_web/live/event_live/manage.ex:1583
-#: lib/claper_web/live/event_live/manage.ex:1609
-#: lib/claper_web/live/event_live/manage.ex:1676
+#: lib/claper_web/live/event_live/manage.ex:1036
+#: lib/claper_web/live/event_live/manage.ex:1039
+#: lib/claper_web/live/event_live/manage.ex:1486
+#: lib/claper_web/live/event_live/manage.ex:1529
+#: lib/claper_web/live/event_live/manage.ex:1545
+#: lib/claper_web/live/event_live/manage.ex:1587
+#: lib/claper_web/live/event_live/manage.ex:1613
+#: lib/claper_web/live/event_live/manage.ex:1639
+#: lib/claper_web/live/event_live/manage.ex:1706
 #, elixir-autogen, elixir-format
 msgid "Resource not found"
 msgstr "Resursen hittades inte"
@@ -3054,7 +3054,7 @@ msgstr "Transkriberingsinställningar"
 msgid "Transcription deleted"
 msgstr "Transkribering borttagen"
 
-#: lib/claper_web/live/event_live/manage.ex:1186
+#: lib/claper_web/live/event_live/manage.ex:1216
 #, elixir-autogen, elixir-format
 msgid "Transcription has been disabled by the administrator"
 msgstr "Transkribering har inaktiverats av administratören"
@@ -3651,12 +3651,12 @@ msgstr "Din presentation är bifogad och klar att använda."
 msgid "name@example.com"
 msgstr "name@example.com"
 
-#: lib/claper_web/live/event_live/manage.ex:990
+#: lib/claper_web/live/event_live/manage.ex:1020
 #, elixir-autogen, elixir-format
 msgid "A reply cannot be empty"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage.ex:1679
+#: lib/claper_web/live/event_live/manage.ex:1709
 #: lib/claper_web/live/event_live/show.ex:465
 #, elixir-autogen, elixir-format
 msgid "Could not send the reply"
@@ -3679,7 +3679,7 @@ msgstr ""
 msgid "Write a reply..."
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage.ex:1012
+#: lib/claper_web/live/event_live/manage.ex:1042
 #: lib/claper_web/live/event_live/show.ex:479
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Could not delete reply"
@@ -3708,8 +3708,8 @@ msgid_plural "%{count} replies"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:251
-#: lib/claper_web/live/event_live/presenter.html.heex:98
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:278
+#: lib/claper_web/live/event_live/presenter.html.heex:121
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{count} answer"
 msgid_plural "%{count} answers"
@@ -3728,8 +3728,8 @@ msgstr[1] ""
 msgid "Add word cloud"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:333
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:541
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:360
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:570
 #, elixir-autogen, elixir-format
 msgid "Approve"
 msgstr ""
@@ -3755,12 +3755,12 @@ msgstr ""
 msgid "Export answers (CSV)"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:225
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:252
 #, elixir-autogen, elixir-format
 msgid "Hide live cloud on attendee devices"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:198
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:223
 #, elixir-autogen, elixir-format
 msgid "Hide word cloud on presentation"
 msgstr ""
@@ -3785,8 +3785,8 @@ msgstr ""
 msgid "Moderate answers before they appear (adds presenter workload)"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:299
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:507
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:326
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:536
 #, elixir-autogen, elixir-format
 msgid "Moderation"
 msgstr ""
@@ -3796,7 +3796,7 @@ msgstr ""
 msgid "New word cloud"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:311
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:338
 #, elixir-autogen, elixir-format
 msgid "No answer waiting for approval"
 msgstr ""
@@ -3812,25 +3812,25 @@ msgstr ""
 msgid "Question"
 msgstr "Frågor"
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:342
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:550
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:369
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:579
 #, elixir-autogen, elixir-format
 msgid "Reject"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:283
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:284
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:310
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:311
 #, elixir-autogen, elixir-format
 msgid "Remove %{word}"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:263
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:467
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:290
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:496
 #, elixir-autogen, elixir-format
 msgid "Reset"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:226
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:253
 #, elixir-autogen, elixir-format
 msgid "Show live cloud on attendee devices"
 msgstr ""
@@ -3840,7 +3840,7 @@ msgstr ""
 msgid "Show the live word cloud to attendees on their device"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:199
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:224
 #, elixir-autogen, elixir-format
 msgid "Show word cloud on presentation"
 msgstr ""
@@ -3856,7 +3856,7 @@ msgstr ""
 msgid "This answer is not allowed"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:259
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:286
 #, elixir-autogen, elixir-format
 msgid "This will delete every answer of this word cloud, are you sure?"
 msgstr ""
@@ -3882,7 +3882,7 @@ msgstr ""
 msgid "Type your answer..."
 msgstr ""
 
-#: lib/claper_web/live/event_live/presenter.html.heex:95
+#: lib/claper_web/live/event_live/presenter.html.heex:118
 #: lib/claper_web/live/event_live/word_cloud_cloud_component.ex:21
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Waiting for answers..."
@@ -3932,9 +3932,9 @@ msgstr ""
 msgid "pending"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:451
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:480
 #: lib/claper_web/live/event_live/open_ended_component.ex:92
-#: lib/claper_web/live/event_live/presenter.html.heex:122
+#: lib/claper_web/live/event_live/presenter.html.heex:143
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{count} response"
 msgid_plural "%{count} responses"
@@ -3946,7 +3946,7 @@ msgstr[1] ""
 msgid "Add open ended question"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:401
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:430
 #: lib/claper_web/live/open_ended_live/form_component.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "Auto-scroll to new responses"
@@ -3968,12 +3968,12 @@ msgstr ""
 msgid "Export responses (CSV)"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:425
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:454
 #, elixir-autogen, elixir-format
 msgid "Hide responses on attendee devices"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:354
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:381
 #, elixir-autogen, elixir-format
 msgid "Hide responses on presentation"
 msgstr ""
@@ -3998,7 +3998,7 @@ msgstr ""
 msgid "New open ended question"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:519
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:548
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No response waiting for approval"
 msgstr ""
@@ -4016,8 +4016,8 @@ msgstr ""
 msgid "Please type a response"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:491
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:492
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:520
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:521
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Remove response"
 msgstr "Ta bort fråga"
@@ -4027,12 +4027,12 @@ msgstr "Ta bort fråga"
 msgid "Response settings"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:426
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:455
 #, elixir-autogen, elixir-format
 msgid "Show responses on attendee devices"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:355
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:382
 #, elixir-autogen, elixir-format
 msgid "Show responses on presentation"
 msgstr ""
@@ -4052,7 +4052,7 @@ msgstr ""
 msgid "This question is full"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:463
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:492
 #, elixir-autogen, elixir-format, fuzzy
 msgid "This will delete every response of this question, are you sure?"
 msgstr ""
@@ -4078,7 +4078,7 @@ msgstr ""
 msgid "Up to %{count} characters"
 msgstr ""
 
-#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:379
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:408
 #: lib/claper_web/live/open_ended_live/form_component.html.heex:45
 #, elixir-autogen, elixir-format
 msgid "Vote on responses"
@@ -4177,4 +4177,72 @@ msgstr ""
 #: lib/claper_web/live/user_settings_live/show.html.heex:421
 #, elixir-autogen, elixir-format
 msgid "last used %{date}"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:89
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{count} vote"
+msgid_plural "%{count} votes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:642
+#, elixir-autogen, elixir-format
+msgid "Bottom bar"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:680
+#, elixir-autogen, elixir-format
+msgid "Bottom left"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:681
+#, elixir-autogen, elixir-format
+msgid "Bottom right"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:633
+#, elixir-autogen, elixir-format
+msgid "Corner box"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:621
+#, elixir-autogen, elixir-format
+msgid "Full screen"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:619
+#, elixir-autogen, elixir-format
+msgid "Position on presentation"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:103
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Reset votes"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:624
+#, elixir-autogen, elixir-format
+msgid "Side panel"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:659
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:661
+#, elixir-autogen, elixir-format
+msgid "Size"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:97
+#, elixir-autogen, elixir-format
+msgid "This will delete every vote of this poll and all attendees will be able to vote again, are you sure?"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:678
+#, elixir-autogen, elixir-format
+msgid "Top left"
+msgstr ""
+
+#: lib/claper_web/live/event_live/manage_interaction_options_component.ex:679
+#, elixir-autogen, elixir-format
+msgid "Top right"
 msgstr ""

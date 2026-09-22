@@ -20,6 +20,9 @@ Slide 3  [Open Presenter word cloud]  "What causes diagnostic delay?"
 | Office API + realtime channel, personal access tokens in Settings | `docs/office-addin.md` |
 | PowerPoint content add-in (poll, word cloud, open ended, quiz, Q&A, join QR) | `office-addin/`, `docs/office-addin.md` |
 | Production Docker image (add-in included), Compose, GitHub Actions → GHCR, `/health` | `docs/deployment.md` |
+| Poll **Reset votes** button in the Event Manager (everyone votes again) | `docs/presenter-layout.md` |
+| Presenter **panel layout**: full screen, side panel, corner box or bottom bar with a size slider, so the slide stays visible during a poll | `docs/presenter-layout.md` |
+| Add-in **Appearance**: text size, light/dark, hide title / QR / live badge; compact automatically when the add-in is resized on the slide | `docs/office-addin.md` |
 
 Everything Claper already does (presentations, polls, quizzes, Q&A, forms,
 embeds, QR join, presenter mode, LTI, OIDC, transcription) still works; see
@@ -63,6 +66,14 @@ Details, DNS, backups and Hostinger notes: `docs/deployment.md`.
    pick the event → pick the interaction (or *Join screen* / *Questions*).
 4. Start the slideshow. Attendees scan the QR on the slide; answers appear
    live on the slide and in the browser presenter.
+5. Resize the add-in with its corner handles like any other object. It
+   adapts by itself (two columns when wide, no QR when short). ⚙ →
+   **Appearance** sets text size, colours and what is shown.
+
+Without the add-in (for example when your organisation blocks Office
+add-ins), upload the PDF of the deck and use the presenter page. In the
+Event Manager, **Position on presentation** places the poll beside, under
+or in a corner of the slide so the audience sees both.
 
 ## Repository layout
 

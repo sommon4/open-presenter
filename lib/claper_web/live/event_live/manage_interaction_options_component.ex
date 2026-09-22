@@ -79,6 +79,31 @@ defmodule ClaperWeb.EventLive.ManageInteractionOptionsComponent do
                 </svg>
               </:icon>
             </.toggle_row>
+
+            <.layout_settings state={@state} />
+
+            <% poll_total = poll_total(@current_interaction) %>
+            <div class="rounded-2xl border border-gray-200 bg-white px-3 py-2" data-poll-votes>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold text-gray-700">
+                  {ngettext("%{count} vote", "%{count} votes", poll_total)}
+                </span>
+                <button
+                  :if={poll_total > 0}
+                  type="button"
+                  phx-click="poll-reset"
+                  phx-value-id={@current_interaction.id}
+                  data-confirm={
+                    gettext(
+                      "This will delete every vote of this poll and all attendees will be able to vote again, are you sure?"
+                    )
+                  }
+                  class="text-xs font-semibold text-supporting-red-500 hover:underline"
+                >
+                  {gettext("Reset votes")}
+                </button>
+              </div>
+            </div>
           <% %Claper.Quizzes.Quiz{} -> %>
             <div class="space-y-2">
               <.toggle_row
@@ -218,6 +243,8 @@ defmodule ClaperWeb.EventLive.ManageInteractionOptionsComponent do
                   </svg>
                 </:icon>
               </.toggle_row>
+
+              <.layout_settings state={@state} />
 
               <.toggle_row
                 label={
@@ -374,6 +401,8 @@ defmodule ClaperWeb.EventLive.ManageInteractionOptionsComponent do
                   </svg>
                 </:icon>
               </.toggle_row>
+
+              <.layout_settings state={@state} />
 
               <.toggle_row
                 label={gettext("Vote on responses")}
@@ -563,6 +592,152 @@ defmodule ClaperWeb.EventLive.ManageInteractionOptionsComponent do
         <% end %>
       </div>
     </div>
+    """
+  end
+
+  defp poll_total(%{poll_opts: opts}) when is_list(opts),
+    do: opts |> Enum.map(&(&1.vote_count || 0)) |> Enum.sum()
+
+  defp poll_total(_), do: 0
+
+  attr :state, :map, required: true
+
+  @doc false
+  def layout_settings(assigns) do
+    alias Claper.Presentations.PresentationState
+
+    assigns =
+      assigns
+      |> assign(:layout, assigns.state.poll_layout || "overlay")
+      |> assign(:size, assigns.state.poll_size || 40)
+      |> assign(:corner, assigns.state.poll_corner || "bottom-right")
+      |> assign(:min_size, PresentationState.min_size())
+      |> assign(:max_size, PresentationState.max_size())
+
+    ~H"""
+    <div class="rounded-2xl border border-gray-200 bg-white px-3 py-2" data-poll-layout>
+      <p class="text-xs font-semibold text-gray-700">{gettext("Position on presentation")}</p>
+      <div class="mt-2 grid grid-cols-4 gap-1">
+        <.layout_button layout="overlay" current={@layout} label={gettext("Full screen")}>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+        </.layout_button>
+        <.layout_button layout="side" current={@layout} label={gettext("Side panel")}>
+          <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M14 4v16" /><rect
+            x="14"
+            y="4"
+            width="7"
+            height="16"
+            fill="currentColor"
+          />
+        </.layout_button>
+        <.layout_button layout="corner" current={@layout} label={gettext("Corner box")}>
+          <rect x="3" y="4" width="18" height="16" rx="2" /><rect
+            x="12"
+            y="11"
+            width="8"
+            height="8"
+            fill="currentColor"
+          />
+        </.layout_button>
+        <.layout_button layout="bottom" current={@layout} label={gettext("Bottom bar")}>
+          <rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 14h18" /><rect
+            x="3"
+            y="14"
+            width="18"
+            height="6"
+            fill="currentColor"
+          />
+        </.layout_button>
+      </div>
+
+      <form
+        :if={@layout != "overlay"}
+        phx-change="poll-size"
+        class="mt-2 flex items-center gap-2"
+        data-poll-size
+      >
+        <span class="text-xs text-gray-600 shrink-0">{gettext("Size")}</span>
+        <input
+          aria-label={gettext("Size")}
+          type="range"
+          name="size"
+          min={@min_size}
+          max={@max_size}
+          step="5"
+          value={@size}
+          phx-debounce="150"
+          class="range range-xs range-primary flex-1"
+        />
+        <span class="text-xs font-semibold text-gray-700 w-9 text-right">{@size}%</span>
+      </form>
+
+      <div :if={@layout == "corner"} class="mt-2 grid grid-cols-4 gap-1" data-poll-corner>
+        <button
+          :for={
+            {corner, label} <- [
+              {"top-left", gettext("Top left")},
+              {"top-right", gettext("Top right")},
+              {"bottom-left", gettext("Bottom left")},
+              {"bottom-right", gettext("Bottom right")}
+            ]
+          }
+          type="button"
+          phx-click="poll-corner"
+          phx-value-corner={corner}
+          title={label}
+          aria-label={label}
+          aria-pressed={@corner == corner}
+          class={[
+            "flex items-center justify-center rounded-lg border py-1 text-[10px] font-medium",
+            if(@corner == corner,
+              do: "border-primary bg-[#f3defa] text-primary-500",
+              else: "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            )
+          ]}
+        >
+          {label}
+        </button>
+      </div>
+    </div>
+    """
+  end
+
+  attr :layout, :string, required: true
+  attr :current, :string, required: true
+  attr :label, :string, required: true
+  slot :inner_block, required: true
+
+  defp layout_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      phx-click="poll-layout"
+      phx-value-layout={@layout}
+      title={@label}
+      aria-label={@label}
+      aria-pressed={@current == @layout}
+      class={[
+        "flex flex-col items-center gap-0.5 rounded-lg border py-1 text-[10px] font-medium",
+        if(@current == @layout,
+          do: "border-primary bg-[#f3defa] text-primary-500",
+          else: "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+        )
+      ]}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="h-5 w-5"
+      >
+        {render_slot(@inner_block)}
+      </svg>
+      {@label}
+    </button>
     """
   end
 

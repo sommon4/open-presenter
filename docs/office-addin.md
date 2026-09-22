@@ -91,6 +91,26 @@ build shares settings between instances, switch to `PowerPoint.run` +
 Special "interactions": `join_screen` (big QR + code) and `qa` (audience
 questions, most liked first).
 
+### Resizing on the slide
+
+A content add-in is an ordinary object on the slide: drag its corner handles
+to make it any size, and place it next to the slide content. The add-in
+uses CSS container queries on `.content`, so it adapts by itself:
+
+| Frame | Behaviour |
+|---|---|
+| height ≤ 260 px | tighter padding, QR/join panel hidden |
+| height ≤ 150 px | title hidden, results only |
+| width ≤ 320 px | QR/join panel hidden |
+| aspect ratio ≥ 2.2 : 1 | poll and quiz options in two columns |
+
+⚙ → **Appearance** (saved per add-in instance in the same settings bag):
+
+* **Text size** 50–200 % (`--scale` multiplies every `clamp()` font size)
+* **Colours** light or dark
+* **Show the question title**, **Show the QR code and join code**
+* **Hide the live badge** — clean look; the gear appears on hover only
+
 ### Development
 
 ```bash
