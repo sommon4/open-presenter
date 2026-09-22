@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {csrf_meta_tag()}
+    <.live_title suffix=" · Claper Admin">
+      {assigns[:page_title] || "Admin Dashboard"}
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href="/assets/app.css" />
+    <link phx-track-static rel="stylesheet" href="/assets/admin.css" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <script defer phx-track-static type="text/javascript" src="/assets/app.js">
+    </script>
+  </head>
+  <body>
+    {@inner_content}
+  </body>
+</html>

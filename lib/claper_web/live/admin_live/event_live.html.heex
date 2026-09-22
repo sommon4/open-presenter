@@ -1,0 +1,289 @@
+<%= case @live_action do %>
+  <% :index -> %>
+    <div phx-hook="CSVDownloader" id="event-list">
+      <h1 class="text-3xl font-bold mb-6">{gettext("Events")}</h1>
+
+      <.form
+        for={@form}
+        class="flex flex-col sm:flex-row gap-3 sm:[&>div]:basis-[250px]"
+        phx-change="filter-events"
+      >
+        <Flop.Phoenix.filter_fields :let={i} form={@form} fields={@fields}>
+          <ClaperWeb.CoreComponents.input
+            field={i.field}
+            label={i.label}
+            type={i.type}
+            phx-debounce="300"
+            {i.rest}
+          />
+        </Flop.Phoenix.filter_fields>
+      </.form>
+
+      <Flop.Phoenix.table
+        items={@events}
+        meta={@meta}
+        path={~p"/admin/events"}
+        opts={[
+          container: true,
+          container_attrs: [class: "card bg-base-100 shadow-md overflow-x-auto my-5"],
+          no_results_content: ~H"""
+          <p class="text-center py-10">{gettext("No events found")}</p>
+          """,
+          table_attrs: [class: "table table-zebra w-full"],
+          symbol_asc: ~H"""
+          <span aria-hidden="true"><ClaperWeb.Icons.arrow_up /></span>
+          """,
+          symbol_desc: ~H"""
+          <span aria-hidden="true"><ClaperWeb.Icons.arrow_down /></span>
+          """
+        ]}
+      >
+        <:col :let={event} label={gettext("Name")} field={:name}>
+          <.link navigate={~p"/admin/events/#{event}"} class="link font-bold">
+            {event.name}
+          </.link>
+        </:col>
+        <:col :let={event} label={gettext("Code")} field={:code}>
+          <span class="uppercase">{event.code}</span>
+        </:col>
+        <:col :let={event} label={gettext("Owner")}>
+          {if event.user, do: event.user.email, else: gettext("No owner")}
+        </:col>
+        <:col :let={event} label={gettext("Started At")} field={:started_at}>
+          {if event.started_at,
+            do: Calendar.strftime(event.started_at, "%Y-%m-%d %H:%M"),
+            else: gettext("Not started")}
+        </:col>
+        <:col :let={event} label={gettext("Expired At")} field={:expired_at}>
+          {if event.expired_at,
+            do: Calendar.strftime(event.expired_at, "%Y-%m-%d %H:%M"),
+            else: gettext("Not expired")}
+        </:col>
+        <:col :let={event} label={gettext("Audience Peak")} field={:audience_peak}>
+          <div class="badge badge-outline">{event.audience_peak || 0}</div>
+        </:col>
+        <:action :let={event} tbody_td_attrs={[class: "text-right"]}>
+          <div class="flex justify-end gap-2">
+            <.link
+              navigate={~p"/admin/events/#{event}/edit"}
+              class="btn btn-link btn-sm text-primary"
+              title={gettext("Edit event")}
+            >
+              <span class="hero-pencil-square w-5 h-5" />
+            </.link>
+            <a
+              href="#"
+              phx-click="delete"
+              phx-value-id={event.id}
+              data-confirm={gettext("Are you sure you want to delete this event?")}
+              class="btn btn-link btn-sm text-error"
+              title={gettext("Delete event")}
+            >
+              <span class="hero-trash w-5 h-5" />
+            </a>
+          </div>
+        </:action>
+      </Flop.Phoenix.table>
+
+      <div class="flex justify-end mt-4">
+        <ClaperWeb.CoreComponents.pagination meta={@meta} path={~p"/admin/events"} />
+      </div>
+    </div>
+  <% :show -> %>
+    <div id="event-show" phx-hook="CSVDownloader">
+      <div>
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-3xl font-bold">{gettext("Event details")}</h1>
+          <div class="flex gap-3">
+            <.link navigate={~p"/admin/events"} class="btn btn-outline btn-sm">
+              {gettext("Back to events")}
+            </.link>
+            <.link navigate={~p"/admin/events/#{@event}/edit"} class="btn btn-primary btn-sm">
+              {gettext("Edit")}
+            </.link>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <.detail_card>
+          <.detail_row label={gettext("Name")}>
+            {@event.name}
+          </.detail_row>
+          <.detail_row label={gettext("Owner")}>
+            <%= if @event.user do %>
+              <span class="space-x-2">
+                <a href={"mailto:#{@event.user.email}"} class="link link-primary">
+                  {@event.user.email}
+                </a>
+                <.link
+                  navigate={~p"/admin/users/#{@event.user}"}
+                  class="link link-primary *:inline"
+                  aria-label={gettext("View profile for %{email}", email: @event.user.email)}
+                >
+                  <ClaperWeb.Icons.eye />
+                </.link>
+              </span>
+            <% else %>
+              {gettext("No owner")}
+            <% end %>
+          </.detail_row>
+          <.detail_row label={gettext("Started At")}>
+            {if @event.started_at,
+              do: format_admin_timestamp(@event.started_at),
+              else: gettext("Not started")}
+          </.detail_row>
+          <.detail_row label={gettext("Expired At")}>
+            {if @event.expired_at,
+              do: format_admin_timestamp(@event.expired_at),
+              else: gettext("Not expired")}
+          </.detail_row>
+          <.detail_row label={gettext("Audience Peak")}>
+            {@event.audience_peak || 0} {gettext("attendees")}
+          </.detail_row>
+          <.detail_row label={gettext("Created At")}>
+            {format_admin_timestamp(@event.inserted_at)}
+          </.detail_row>
+          <.detail_row label={gettext("Last Updated")}>
+            {format_admin_timestamp(@event.updated_at)}
+          </.detail_row>
+        </.detail_card>
+      </div>
+      
+<!-- Transcriptions Section -->
+      <div class="mt-6">
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body p-0">
+            <div class="flex justify-between items-center px-6 pt-6 pb-2">
+              <h2 class="card-title">{gettext("Transcriptions")}</h2>
+              <button
+                :if={@transcriptions != []}
+                class="btn btn-primary btn-sm"
+                phx-click="export_transcriptions"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke="currentColor"
+                  class="w-4 h-4"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
+                </svg>
+                {gettext("Export")}
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="table table-zebra w-full">
+                <thead>
+                  <tr>
+                    <th class="text-left">{gettext("Time")}</th>
+                    <th class="text-left">{gettext("Text")}</th>
+                    <th class="text-right">
+                      <span class="sr-only">{gettext("Actions")}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <%= if Enum.empty?(@transcriptions) do %>
+                    <tr>
+                      <td colspan="3" class="text-center">
+                        {gettext("No transcriptions found")}
+                      </td>
+                    </tr>
+                  <% else %>
+                    <%= for t <- @transcriptions do %>
+                      <tr id={"transcription-#{t.id}"}>
+                        <td class="text-sm text-gray-500 whitespace-nowrap">
+                          {Calendar.strftime(t.inserted_at, "%Y-%m-%d %H:%M:%S")}
+                        </td>
+                        <td>{t.text}</td>
+                        <td class="text-right">
+                          <a
+                            href="#"
+                            phx-click="delete_transcription"
+                            phx-value-id={t.id}
+                            data-confirm={
+                              gettext("Are you sure you want to delete this transcription?")
+                            }
+                            class="btn btn-link btn-sm text-error"
+                            title={gettext("Delete transcription")}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="2"
+                              stroke="currentColor"
+                              class="w-5 h-5"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                              />
+                            </svg>
+                          </a>
+                        </td>
+                      </tr>
+                    <% end %>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% :new -> %>
+    <div>
+      <div>
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold">{gettext("New event")}</h1>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="card bg-base-100 shadow-md">
+          <div class="card-body">
+            <.live_component
+              module={ClaperWeb.AdminLive.EventLive.FormComponent}
+              id="event-form"
+              title={gettext("New event")}
+              action={:new}
+              event={@event}
+              navigate={~p"/admin/events"}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  <% :edit -> %>
+    <div>
+      <div>
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold">{gettext("Edit event")}</h1>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="card bg-base-100 shadow-md">
+          <div class="card-body">
+            <.live_component
+              module={ClaperWeb.AdminLive.EventLive.FormComponent}
+              id={"event-form-#{@event.id}"}
+              title={gettext("Edit event")}
+              action={:edit}
+              event={@event}
+              navigate={~p"/admin/events"}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+<% end %>

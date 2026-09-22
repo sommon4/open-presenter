@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="ContentApp">
+
+  <!-- One GUID per deployment. Keep it stable once users have inserted the add-in. -->
+  <Id>{{ADDIN_ID}}</Id>
+  <Version>{{VERSION}}</Version>
+  <ProviderName>Open Presenter</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Open Presenter" />
+  <Description DefaultValue="Live polls, word clouds, open ended questions, quizzes and Q&amp;A from your self-hosted Open Presenter (Claper) server, inside your slides." />
+  <IconUrl DefaultValue="{{BASE_URL}}/office/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{BASE_URL}}/office/assets/icon-64.png" />
+  <SupportUrl DefaultValue="{{BASE_URL}}" />
+
+  <AppDomains>
+    <AppDomain>{{BASE_URL}}</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="Settings" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="{{BASE_URL}}/office/index.html" />
+    <RequestedWidth>640</RequestedWidth>
+    <RequestedHeight>400</RequestedHeight>
+  </DefaultSettings>
+
+  <Permissions>ReadDocument</Permissions>
+</OfficeApp>

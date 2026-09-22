@@ -1,0 +1,29 @@
+Open Presenter
+==============
+
+Open Presenter is a derivative work of Claper (https://github.com/ClaperCo/Claper),
+Copyright (c) Claper contributors, distributed under the GNU Affero General
+Public License v3.0 (see LICENSE.txt). The complete combined work, including
+the Word Cloud and Open Ended interactions, the Office API and the PowerPoint
+add-in, is distributed under AGPL-3.0.
+
+Third-party material
+--------------------
+
+* Jackpoll (https://github.com/jackpoll-org/jackpoll), MIT License.
+  Used as a reference for the Word Cloud behaviour (answer normalization,
+  frequency aggregation, exact-match profanity check with leetspeak folding,
+  realtime delta updates). Behaviour was re-implemented in Elixir; no Java or
+  TypeScript source was copied. Notice retained in
+  THIRD_PARTY_LICENSES/JACKPOLL-MIT.txt.
+
+* Live-Poll PowerPoint add-in (https://github.com/livepoll/live-poll-powerpoint),
+  MIT License, archived. Used as a reference for the Office manifest structure
+  and Office.js initialisation. Notice retained in
+  THIRD_PARTY_LICENSES/LIVE-POLL-MIT.txt.
+
+* Office.js is loaded at runtime from Microsoft's CDN under Microsoft's terms;
+  it is not distributed with this repository.
+
+* npm and Hex dependencies keep their own licenses (see office-addin/package.json,
+  assets/package.json and mix.lock).

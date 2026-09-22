@@ -1,0 +1,456 @@
+<div id="wrapper" class={if @container == :drawer, do: "flex h-full flex-col", else: ""}>
+  <% upload_entry = Enum.at(@uploads.presentation_file.entries, 0) %>
+  <% upload_progress = if upload_entry, do: upload_entry.progress, else: 0 %>
+  <% can_submit = (is_nil(upload_entry) || upload_progress == 100) && @changeset.valid? %>
+  <% presentation_file = Map.get(@event, :presentation_file) %>
+  <% presentation_attached =
+    not is_nil(presentation_file) && Map.get(presentation_file, :length, 0) > 0 &&
+      not is_nil(Map.get(presentation_file, :id)) %>
+  <% leaders = Ecto.Changeset.get_field(@changeset, :leaders, []) %>
+
+  <header class={[
+    "flex shrink-0 items-center gap-3 border-b border-base-300 bg-base-100 px-4 py-4 sm:px-6",
+    @container != :drawer && "rounded-t-lg"
+  ]}>
+    <.link
+      :if={@container == :drawer}
+      patch={~p"/events"}
+      aria-label={gettext("Close event editor")}
+      class="btn btn-ghost btn-circle !size-10 shrink-0"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+        stroke="currentColor"
+        class="h-5 w-5"
+        aria-hidden="true"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </.link>
+
+    <div class="min-w-0">
+      <h1 id="event-editor-title" class="truncate text-xl font-bold text-secondary">
+        {@page_title}
+      </h1>
+      <p class="mt-0.5 text-xs text-base-content/60">
+        {if @action == :edit,
+          do: gettext("Update the event details your attendees will see."),
+          else: gettext("Set up the details attendees will use to join.")}
+      </p>
+    </div>
+  </header>
+
+  <div class={[
+    "flex-1 space-y-7 overflow-y-auto bg-base-100 px-4 py-6 sm:px-6",
+    @container != :drawer && "rounded-b-lg"
+  ]}>
+    <section
+      class="space-y-4 border-b border-base-300 pb-7"
+      aria-labelledby="presentation-heading"
+    >
+      <div class="space-y-4">
+        <div>
+          <h2 id="presentation-heading" class="text-base font-bold text-secondary">
+            {gettext("Presentation")}
+          </h2>
+          <p class="mt-1 text-xs leading-5 text-base-content/60">
+            <%= if presentation_attached do %>
+              {gettext("Your presentation is attached and ready to use.")}
+            <% else %>
+              {gettext("Optional. Add a PDF or PowerPoint now, or upload one later.")}
+            <% end %>
+          </p>
+        </div>
+
+        <form
+          id="file-form"
+          phx-change="validate-file"
+          phx-submit="save-file"
+          phx-target={@myself}
+          class="min-w-0"
+        >
+          <div
+            class={[
+              "rounded-2xl border-2 bg-base-200/50 p-4 transition-colors",
+              upload_entry && upload_progress == 100 && "border-success/40",
+              (!upload_entry || upload_progress < 100) && "border-dashed border-base-300"
+            ]}
+            phx-drop-target={@uploads.presentation_file.ref}
+          >
+            <%= if upload_entry do %>
+              <div class="flex min-w-0 items-start gap-3">
+                <div class={[
+                  "flex size-10 shrink-0 items-center justify-center rounded-full",
+                  upload_progress == 100 && "bg-success/10 text-success",
+                  upload_progress < 100 && "bg-primary/10 text-primary"
+                ]}>
+                  <%= if upload_progress == 100 do %>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
+                  <% else %>
+                    <span class="loading loading-spinner loading-sm" aria-hidden="true"></span>
+                  <% end %>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-bold text-base-content">
+                    <%= if upload_progress == 100 do %>
+                      {gettext("New presentation ready")}
+                    <% else %>
+                      {gettext("Uploading... %{progress}%", progress: upload_progress)}
+                    <% end %>
+                  </p>
+                  <p class="mt-0.5 truncate text-xs text-base-content/60">
+                    {upload_entry.client_name}
+                  </p>
+                  <progress
+                    :if={upload_progress < 100}
+                    class="progress progress-primary mt-3 h-2 w-full"
+                    max="100"
+                    value={upload_progress}
+                    aria-label={gettext("Presentation upload progress")}
+                  >
+                    {upload_progress}
+                  </progress>
+                  <p :if={upload_progress == 100} class="mt-2 text-xs text-base-content/60">
+                    {gettext("Save the event to start processing this presentation.")}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  phx-click="remove-file"
+                  phx-value-ref={upload_entry.ref}
+                  phx-target={@myself}
+                  aria-label={gettext("Remove selected presentation")}
+                  class="btn btn-ghost btn-circle btn-sm shrink-0 text-error"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                    class="h-4 w-4"
+                    aria-hidden="true"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            <% else %>
+              <div class="flex flex-col items-center py-2 text-center">
+                <div class="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="currentColor"
+                    class="h-6 w-6"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5h10.5A2.25 2.25 0 0 0 19.5 17.25v-10.5A2.25 2.25 0 0 0 17.25 4.5H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5A2.25 2.25 0 0 0 6.75 19.5Z"
+                    />
+                  </svg>
+                </div>
+                <p class="mt-3 text-sm font-bold text-base-content">
+                  <%= if presentation_attached do %>
+                    <span class="badge badge-success badge-outline mr-1">
+                      {gettext("Attached")}
+                    </span>
+                    {gettext("Replace presentation")}
+                  <% else %>
+                    {gettext("Add a presentation")}
+                  <% end %>
+                </p>
+                <p class="mt-1 text-xs text-base-content/60">
+                  {gettext("Drag and drop a file here, or")}
+                </p>
+                <label
+                  for={@uploads.presentation_file.ref}
+                  class="btn btn-sm btn-outline btn-primary mt-3 !h-9 cursor-pointer"
+                >
+                  {gettext("Choose file")}
+                </label>
+                <p class="mt-3 text-xs text-base-content/50">
+                  {gettext("PDF, PPT, or PPTX up to %{size} MB", size: @max_file_size)}
+                </p>
+              </div>
+            <% end %>
+
+            <.live_file_input upload={@uploads.presentation_file} class="sr-only" />
+
+            <%= if upload_entry do %>
+              <%= for err <- upload_errors(@uploads.presentation_file, upload_entry) do %>
+                <div class="alert alert-error mt-3 py-2 text-sm" role="alert">
+                  {error_to_string(err)}
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <.form
+      :let={f}
+      for={@changeset}
+      id="event-form"
+      phx-target={@myself}
+      phx-change="validate"
+      phx-submit="save"
+      class="space-y-7"
+    >
+      <section
+        class={[
+          "space-y-4",
+          @action == :edit && "border-b border-base-300 pb-7"
+        ]}
+        aria-labelledby="event-details-heading"
+      >
+        <div class="space-y-4">
+          <div>
+            <h2 id="event-details-heading" class="text-base font-bold text-secondary">
+              {gettext("Event details")}
+            </h2>
+            <p class="mt-1 text-xs leading-5 text-base-content/60">
+              {gettext("These details help attendees find and join your event.")}
+            </p>
+          </div>
+
+          <.text_field
+            form={f}
+            key={:name}
+            label={gettext("Event name")}
+            autofocus={@action == :new}
+            required
+            minlength="5"
+            maxlength="50"
+          />
+
+          <div class="flex flex-col gap-1">
+            <ClaperWeb.Component.Input.code
+              form={f}
+              key={:code}
+              name={gettext("Join code")}
+              required="true"
+            />
+            <p class="text-xs text-base-content/60">
+              {gettext("Attendees enter this code to join.")}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1" id="date-picker">
+            <ClaperWeb.Component.Input.date
+              form={f}
+              key={:started_at}
+              name={gettext("Start date and time")}
+              locale={@current_user.locale}
+              required="true"
+            />
+            <p class="text-xs text-base-content/60">{gettext("Shown in your local time.")}</p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        :if={@action == :edit}
+        id="facilitators-section"
+        class={[
+          "space-y-4",
+          !@event.expired_at && "border-b border-base-300 pb-7"
+        ]}
+        aria-labelledby="facilitators-heading"
+      >
+        <div class="space-y-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 id="facilitators-heading" class="text-base font-bold text-secondary">
+                {gettext("Facilitators")}
+              </h2>
+              <p class="mt-1 text-xs leading-5 text-base-content/60">
+                {gettext("Invite people who can present and manage audience interactions.")}
+              </p>
+            </div>
+            <button
+              type="button"
+              phx-click="add-leader"
+              phx-target={@myself}
+              class="btn btn-sm shrink-0 border-none bg-base-200 text-base-content hover:bg-base-300 !h-9"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                class="h-4 w-4"
+                aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {gettext("Add")}
+            </button>
+          </div>
+
+          <p
+            :if={Enum.empty?(leaders)}
+            id="facilitators-empty-state"
+            class="text-sm text-base-content/50"
+          >
+            {gettext("No facilitators have been added yet.")}
+          </p>
+
+          <div class="flex flex-col gap-3">
+            <%= inputs_for f, :leaders, fn l -> %>
+              <div
+                class="flex min-w-0 items-end gap-2"
+                id={"facilitator-#{l.data.temp_id || l.id}"}
+              >
+                <div class="avatar avatar-placeholder hidden shrink-0 pb-1 sm:flex">
+                  <div class="w-10 rounded-full bg-secondary text-secondary-content">
+                    <span class="text-sm font-bold">
+                      {(l.data.email || "?") |> String.first() |> String.upcase()}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <.text_field
+                    form={l}
+                    key={:email}
+                    type="email"
+                    label={gettext("Email address")}
+                    placeholder={gettext("name@example.com")}
+                    readonly={is_nil(l.data.temp_id)}
+                    autocomplete="email"
+                  />
+                </div>
+
+                {hidden_input(l, :temp_id)}
+                {hidden_input(l, :event_id, value: @event.id)}
+                {hidden_input(l, :user_email, value: @current_user.email)}
+
+                <%= if is_nil(l.data.temp_id) do %>
+                  {checkbox(l, :delete, class: "hidden")}
+                  <button
+                    type="button"
+                    phx-click={
+                      JS.set_attribute({"checked", "checked"}, to: "##{input_id(l, :delete)}")
+                      |> JS.hide(to: "#facilitator-#{l.id}")
+                    }
+                    aria-label={gettext("Remove facilitator")}
+                    class="btn btn-circle btn-error !size-12 shrink-0"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 18 18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                <% else %>
+                  <button
+                    type="button"
+                    phx-click="remove-leader"
+                    phx-value-remove={l.data.temp_id}
+                    phx-target={@myself}
+                    aria-label={gettext("Remove facilitator")}
+                    class="btn btn-circle btn-error !size-12 shrink-0"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="2"
+                      stroke="currentColor"
+                      class="h-5 w-5"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 18 18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </section>
+    </.form>
+
+    <section
+      :if={@action == :edit && !@event.expired_at}
+      id="event-danger-zone"
+      class="space-y-3"
+      aria-labelledby="danger-zone-heading"
+    >
+      <div class="space-y-3">
+        <div>
+          <h2 id="danger-zone-heading" class="text-base font-bold text-error">
+            {gettext("Delete event")}
+          </h2>
+          <p class="mt-1 text-xs leading-5 text-base-content/60">
+            {gettext("Permanently delete this event. This action cannot be undone.")}
+          </p>
+        </div>
+        {link(gettext("Delete event"),
+          to: "#",
+          phx_click: "delete",
+          phx_value_id: @event.uuid,
+          data: [confirm: gettext("Delete this event? This action cannot be undone.")],
+          class: "btn btn-outline btn-error w-full"
+        )}
+      </div>
+    </section>
+  </div>
+
+  <footer class={[
+    "shrink-0 border-t border-base-300 bg-base-100 px-4 py-4 sm:px-6",
+    @container != :drawer && "rounded-b-lg"
+  ]}>
+    <button
+      type="submit"
+      form="event-form"
+      disabled={!can_submit}
+      phx-disable-with={
+        if @action == :edit, do: gettext("Saving..."), else: gettext("Creating...")
+      }
+      class="btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      {if @action == :edit, do: gettext("Save changes"), else: gettext("Create event")}
+    </button>
+  </footer>
+</div>

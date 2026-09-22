@@ -1,0 +1,126 @@
+ARG BUILDER_IMAGE="hexpm/elixir:1.18.4-erlang-28.0.1-ubuntu-noble-20250619"
+ARG RUNNER_IMAGE="ubuntu:24.04"
+
+# ---------------------------------------------------------------------------
+# Stage 1: build the PowerPoint add-in (static files served by Phoenix at /office/)
+# ---------------------------------------------------------------------------
+FROM node:22-bookworm-slim AS office-build
+
+WORKDIR /office
+COPY office-addin/package.json office-addin/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY office-addin .
+RUN npm run build
+
+# ---------------------------------------------------------------------------
+# Stage 2: build the Phoenix release
+# ---------------------------------------------------------------------------
+FROM ${BUILDER_IMAGE} as builder
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    bash \
+    ca-certificates \
+    nodejs \
+    npm \
+    openssl \
+    libncurses5-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_VERSION 22.17.0
+ENV PRESENTATION_STORAGE_DIR /app/uploads
+
+# custom ERL_FLAGS are passed for (public) multi-platform builds
+# to fix qemu segfault, more info: https://github.com/erlang/otp/pull/6340
+ARG ERL_FLAGS
+ENV ERL_FLAGS=$ERL_FLAGS
+
+# prepare build dir
+WORKDIR /app
+
+# install hex + rebar
+RUN mix local.hex --force && \
+    mix local.rebar --force
+
+# set build ENV
+ENV MIX_ENV="prod"
+
+# install mix dependencies
+COPY mix.exs mix.lock ./
+RUN mix deps.get --only $MIX_ENV
+RUN mkdir config
+
+# copy compile-time config files before we compile dependencies
+# to ensure any relevant config change will trigger the dependencies
+# to be re-compiled.
+COPY config/config.exs config/${MIX_ENV}.exs config/
+RUN mix deps.compile
+
+COPY priv priv
+
+# compiled Office add-in -> priv/static/office (served at https://host/office/)
+COPY --from=office-build /office/dist priv/static/office
+
+COPY assets assets
+
+COPY lib lib
+
+RUN mix compile
+
+RUN mix assets.deploy
+
+COPY config/runtime.exs config/
+
+COPY rel rel
+RUN mix release
+
+# start a new build stage so that the final image will only contain
+# the compiled release and other runtime necessities
+FROM ${RUNNER_IMAGE}
+
+RUN apt-get update -y && apt-get install -y curl libstdc++6 openssl locales ghostscript imagemagick default-jre libreoffice-java-common \
+  && apt-get install -y libreoffice --no-install-recommends && apt-get clean && rm -f /var/lib/apt/lists/*_*
+# RUN apk add --no-cache curl libstdc++ openssl ncurses ghostscript openjdk11-jre
+
+# Install LibreOffice & Common Fonts
+RUN apt-get update && apt-get install -y \
+    libreoffice \
+    fonts-dejavu \
+    fonts-freefont-ttf \
+    fonts-liberation \
+    fonts-droid-fallback \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Microsoft Core Fonts
+RUN apt-get update && apt-get install -y \
+    ttf-mscorefonts-installer \
+    fontconfig \
+    && fc-cache -f \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+ENV MIX_ENV="prod"
+
+
+# Only copy the final release from the build stage
+COPY --from=builder --chmod=a+rX /app/_build/prod/rel/claper /app
+COPY --from=builder /app/priv/repo/seeds.exs /app/priv/repo/
+RUN mkdir /app/uploads && chmod -R 777 /app/uploads
+
+EXPOSE 4000
+WORKDIR "/app"
+USER root
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl --fail --silent http://localhost:4000/health || exit 1
+
+# Migrations run before the release starts, so a failed migration keeps the
+# previous container serving traffic in rolling deployments.
+CMD ["sh", "-c", "/app/bin/claper eval Claper.Release.migrate && /app/bin/claper eval Claper.Release.seeds && /app/bin/claper start"]

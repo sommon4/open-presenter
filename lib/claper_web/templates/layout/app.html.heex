@@ -1,0 +1,11 @@
+<div class="toast toast-bottom toast-center z-50">
+  <%= if Phoenix.Flash.get(@flash, :info) do %>
+    <ClaperWeb.Component.Alert.info message={Phoenix.Flash.get(@flash, :info)} />
+  <% end %>
+
+  <%= if Phoenix.Flash.get(@flash, :error) do %>
+    <ClaperWeb.Component.Alert.error message={Phoenix.Flash.get(@flash, :error)} />
+  <% end %>
+</div>
+
+{@inner_content}

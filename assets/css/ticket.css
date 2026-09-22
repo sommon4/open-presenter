@@ -1,0 +1,401 @@
+.ticket-stage {
+    --stage: #0b0710;
+    --paper-ink: rgba(255, 255, 255, 0.92);
+    --accent: #5b16c9;
+    --accent-line: color-mix(in srgb, var(--accent) 55%, white 0%);
+    --notch: var(--stage);
+    --mono:
+        "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 40px 24px;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            120% 90% at 50% -10%,
+            color-mix(in srgb, var(--accent) 26%, transparent),
+            transparent 60%
+        ),
+        var(--stage);
+    font-family: var(--font-display);
+    color: var(--paper-ink);
+}
+
+/* ---- ticket shell ---- */
+/* tilt vars live on :root (set by the TicketTilt hook) so LiveView
+   patches of the countdown can't wipe them mid-animation */
+.ticket-stage .ticket {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    width: min(940px, calc(100vw - 48px));
+    min-height: 420px;
+    border-radius: 18px;
+    background: var(--accent);
+    filter: drop-shadow(0 30px 55px rgba(0, 0, 0, 0.55))
+        drop-shadow(
+            0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent)
+        );
+    isolation: isolate;
+    transform: perspective(1300px) rotateX(var(--tilt-rx, 0deg))
+        rotateY(var(--tilt-ry, 0deg));
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+}
+
+/* cursor-following light sheen */
+.ticket-stage .glare {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 5;
+    opacity: var(--glare-o, 0);
+    background: radial-gradient(
+        480px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+        rgba(255, 255, 255, 0.16),
+        transparent 65%
+    );
+    mix-blend-mode: screen;
+    transition: opacity 0.25s ease;
+}
+
+/* guilloché / paper texture layer */
+.ticket-stage .texture {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: soft-light;
+    background-image:
+        repeating-linear-gradient(
+            115deg,
+            rgba(255, 255, 255, 0.07) 0 1px,
+            transparent 1px 7px
+        ),
+        repeating-linear-gradient(
+            -25deg,
+            rgba(255, 255, 255, 0.05) 0 1px,
+            transparent 1px 9px
+        ),
+        radial-gradient(
+            circle at 22% 30%,
+            rgba(255, 255, 255, 0.1),
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 78% 72%,
+            rgba(255, 255, 255, 0.08),
+            transparent 40%
+        );
+}
+
+/* ---- ticket body (event info) ---- */
+.ticket-stage .ticket-body {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 auto;
+    padding: 46px 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    min-width: 0;
+}
+
+/* ---- the stub (QR + code) ---- */
+.ticket-stage .ticket-stub {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 300px;
+    padding: 42px 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    border-radius: 0 18px 18px 0;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent) 88%, black),
+        color-mix(in srgb, var(--accent) 78%, black)
+    );
+}
+
+/* ---- perforation divider + notches ---- */
+.ticket-stage .perf {
+    position: relative;
+    z-index: 4;
+    flex: 0 0 0px;
+    align-self: stretch;
+}
+.ticket-stage .perf::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 2.5px dotted
+        color-mix(in srgb, var(--accent-line) 70%, white 35%);
+    opacity: 0.8;
+}
+.ticket-stage .perf::after {
+    content: "";
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--notch);
+    left: 50%;
+    top: -14px;
+    transform: translateX(-50%);
+}
+.ticket-stage .notch-bottom {
+    position: absolute;
+    z-index: 4;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--notch);
+    left: 50%;
+    bottom: -14px;
+    transform: translateX(-50%);
+}
+
+/* ---- type ---- */
+.ticket-stage .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--paper-ink) 85%, transparent);
+}
+.ticket-stage .eyebrow .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ff5a3c;
+    box-shadow: 0 0 0 0 rgba(255, 90, 60, 0.6);
+    animation: ticket-pulse 1.8s infinite;
+}
+@keyframes ticket-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 90, 60, 0.55);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(255, 90, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 90, 60, 0);
+    }
+}
+
+.ticket-stage .event-title {
+    font-size: 62px;
+    line-height: 0.96;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+}
+
+.ticket-stage .event-date {
+    font-family: var(--mono);
+    font-size: 17px;
+    letter-spacing: 0.01em;
+    color: color-mix(in srgb, var(--paper-ink) 72%, transparent);
+    margin: 0;
+}
+
+/* ---- countdown ---- */
+.ticket-stage .cd-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 4px;
+}
+.ticket-stage .cd-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 64px;
+}
+.ticket-stage .cd-num {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+.ticket-stage .cd-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: color-mix(in srgb, var(--paper-ink) 58%, transparent);
+}
+.ticket-stage .cd-sep {
+    font-size: 40px;
+    font-weight: 700;
+    align-self: flex-start;
+    margin-top: -2px;
+    opacity: 0.35;
+}
+
+/* ---- ticket meta footer ---- */
+.ticket-stage .ticket-meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-end;
+    font-family: var(--mono);
+}
+.ticket-stage .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.ticket-stage .meta-k {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--paper-ink) 50%, transparent);
+}
+.ticket-stage .meta-v {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* ---- stub contents ---- */
+.ticket-stage .stub-head {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: color-mix(in srgb, var(--paper-ink) 82%, transparent);
+}
+.ticket-stage .qr-frame {
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    line-height: 0;
+}
+.ticket-stage .qr-frame canvas {
+    display: block;
+    border-radius: 4px;
+}
+.ticket-stage .code-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--paper-ink) 60%, transparent);
+}
+.ticket-stage .code-chip {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    padding: 10px 8px 10px 18px;
+    border-radius: 10px;
+    border: 2px dashed color-mix(in srgb, var(--paper-ink) 40%, transparent);
+    background: rgba(255, 255, 255, 0.06);
+    text-transform: uppercase;
+}
+
+/* ---- powered-by footer ---- */
+.ticket-stage .powered-by {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: color-mix(in srgb, var(--paper-ink) 45%, transparent);
+    transition: color 0.2s ease;
+}
+.ticket-stage .powered-by:hover {
+    color: color-mix(in srgb, var(--paper-ink) 80%, transparent);
+}
+.ticket-stage .powered-by img {
+    height: 20px;
+}
+
+/* ============================================================
+   Below lg the ticket becomes the design's "Tall" boarding-pass
+   orientation: body stacked above the stub, notches on the sides.
+   ============================================================ */
+@media (max-width: 1023px) {
+    .ticket-stage .ticket {
+        flex-direction: column;
+        width: min(470px, calc(100vw - 32px));
+        min-height: 0;
+    }
+    .ticket-stage .ticket-body {
+        padding: 36px 30px;
+    }
+    .ticket-stage .ticket-stub {
+        flex-basis: auto;
+        padding: 32px 26px;
+        border-radius: 0 0 18px 18px;
+    }
+    .ticket-stage .perf::before {
+        top: 50%;
+        left: 18px;
+        right: 18px;
+        bottom: auto;
+        transform: translateY(-50%);
+        border-left: none;
+        border-top: 2.5px dotted
+            color-mix(in srgb, var(--accent-line) 70%, white 35%);
+    }
+    .ticket-stage .perf::after {
+        left: -14px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .ticket-stage .notch-bottom {
+        left: auto;
+        bottom: auto;
+        right: -14px;
+        top: 50%;
+        transform: translate(50%, -50%);
+    }
+    .ticket-stage .event-title {
+        font-size: clamp(38px, 11vw, 52px);
+    }
+    .ticket-stage .cd-row {
+        gap: 10px;
+    }
+    .ticket-stage .cd-cell {
+        min-width: 48px;
+    }
+    .ticket-stage .cd-num {
+        font-size: 36px;
+    }
+    .ticket-stage .cd-sep {
+        font-size: 28px;
+    }
+    .ticket-stage .ticket-meta {
+        gap: 20px;
+    }
+}

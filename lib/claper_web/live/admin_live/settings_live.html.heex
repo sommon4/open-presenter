@@ -1,0 +1,104 @@
+<!-- Header -->
+<div class="mb-8">
+  <h1 class="text-3xl font-bold">{gettext("Settings")}</h1>
+</div>
+
+<!-- Transcription Settings -->
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body min-w-0 p-5 sm:p-8">
+    <h2 class="card-title">{gettext("Transcription Settings")}</h2>
+    <p class="text-sm text-base-content/60 mb-4">
+      {gettext("Configure the Mistral API for real-time transcription features.")}
+    </p>
+
+    <form phx-submit="save" class="min-w-0">
+      <!-- Global Enable/Disable -->
+      <div class="form-control mb-6 min-w-0">
+        <label class="label w-full min-w-0 cursor-pointer items-start justify-start gap-3 sm:gap-4">
+          <input type="hidden" name="transcription_enabled" value="false" />
+          <input
+            type="checkbox"
+            name="transcription_enabled"
+            value="true"
+            class="toggle toggle-primary shrink-0"
+            checked={@transcription_enabled}
+            phx-click="toggle_transcription"
+          />
+          <div class="min-w-0 flex-1">
+            <span class="label-text block w-full whitespace-normal break-words font-medium">
+              {gettext("Enable transcription feature globally")}
+            </span>
+            <p class="block w-full whitespace-normal break-words text-xs text-base-content/60">
+              {gettext("When disabled, no events can use transcription.")}
+            </p>
+          </div>
+        </label>
+      </div>
+      
+<!-- API Key -->
+      <div :if={@transcription_enabled} class="form-control mb-6 min-w-0">
+        <label class="label">
+          <span class="label-text font-medium">{gettext("Mistral API Key")}</span>
+        </label>
+        <div class="flex min-w-0 flex-col gap-2 sm:flex-row">
+          <input
+            type="password"
+            name="transcription_api_key"
+            placeholder={
+              if @api_key_configured,
+                do: gettext("Leave blank to keep current key"),
+                else: gettext("Enter your Mistral API key")
+            }
+            class="input w-full min-w-0 sm:flex-1"
+            autocomplete="off"
+          />
+          <button
+            :if={@api_key_configured}
+            type="button"
+            phx-click="clear_api_key"
+            class="btn btn-outline btn-error w-full sm:w-auto"
+            data-confirm={gettext("Are you sure you want to clear the API key?")}
+          >
+            {gettext("Clear")}
+          </button>
+        </div>
+        <label class="label min-w-0">
+          <span class={"label-text-alt min-w-0 whitespace-normal break-words #{if @api_key_configured, do: "text-success", else: "text-warning"}"}>
+            {if @api_key_configured,
+              do: gettext("API key is configured"),
+              else: gettext("No API key configured")}
+          </span>
+        </label>
+      </div>
+      
+<!-- Default Language -->
+      <div :if={@transcription_enabled} class="form-control mb-6 min-w-0">
+        <label class="label">
+          <span class="label-text font-medium">{gettext("Default Language")}</span>
+        </label>
+        <select
+          name="transcription_default_language"
+          class="select select-bordered w-full min-w-0"
+        >
+          <%= for {label, value} <- @languages do %>
+            <option value={value} selected={value == (@default_language || "")}>{label}</option>
+          <% end %>
+        </select>
+        <label class="label min-w-0">
+          <span class="label-text-alt min-w-0 whitespace-normal break-words text-base-content/60">
+            {gettext(
+              "Default language for new transcription sessions. Can be overridden per event."
+            )}
+          </span>
+        </label>
+      </div>
+      
+<!-- Submit -->
+      <div class="card-actions justify-stretch sm:justify-end">
+        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+          {gettext("Save settings")}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

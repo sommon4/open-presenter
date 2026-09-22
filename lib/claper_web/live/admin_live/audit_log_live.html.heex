@@ -1,0 +1,116 @@
+<h1 class="text-3xl font-bold mb-6">{@page_title}</h1>
+
+<%= if @live_action == :index do %>
+  <.form
+    for={@form}
+    class="flex flex-col sm:flex-row gap-3 sm:[&>div]:basis-[250px]"
+    phx-change="filter-logs"
+  >
+    <Flop.Phoenix.filter_fields :let={i} form={@form} fields={@fields}>
+      <ClaperWeb.CoreComponents.input
+        field={i.field}
+        label={i.label}
+        type={i.type}
+        phx-debounce="300"
+        {i.rest}
+      />
+    </Flop.Phoenix.filter_fields>
+  </.form>
+
+  <Flop.Phoenix.table
+    items={@logs}
+    meta={@meta}
+    path={~p"/admin/audit_logs"}
+    opts={[
+      container: true,
+      container_attrs: [class: "card bg-base-100 shadow-md overflow-x-auto my-5"],
+      no_results_content: ~H"""
+      <p class="text-center py-10">{gettext("No results.")}</p>
+      """,
+      table_attrs: [class: "table table-zebra w-full"],
+      symbol_asc: ~H"""
+      <span aria-hidden="true"><ClaperWeb.Icons.arrow_up /></span>
+      """,
+      symbol_desc: ~H"""
+      <span aria-hidden="true"><ClaperWeb.Icons.arrow_down /></span>
+      """
+    ]}
+  >
+    <:col :let={log} label={gettext("ID")} field={:id}>
+      <.link patch={~p"/admin/audit_logs/#{log}"} class="link font-bold">
+        {log.id}
+      </.link>
+    </:col>
+    <:col :let={log} label={gettext("Action")} field={:action}>
+      <span class="badge badge-outline">{log.action}</span>
+    </:col>
+    <:col :let={log} label={gettext("User")} field={:user_email}>
+      {get_in(log.user.email) || "—"}
+    </:col>
+    <:col :let={log} label={gettext("Timestamp")} field={:inserted_at}>
+      {format_admin_timestamp(log.inserted_at)}
+    </:col>
+    <:col
+      :let={log}
+      label={gettext("Metadata")}
+      field={:metadata}
+      tbody_td_attrs={[class: "max-w-xs truncate text-sm text-base-content/70"]}
+    >
+      {format_metadata(log.metadata)}
+    </:col>
+  </Flop.Phoenix.table>
+
+  <div class="flex justify-end mt-4">
+    <ClaperWeb.CoreComponents.pagination meta={@meta} path={~p"/admin/audit_logs"} />
+  </div>
+<% end %>
+
+<%= if @live_action == :show do %>
+  <.detail_card>
+    <.detail_row label={gettext("ID")}>
+      {@log.id}
+    </.detail_row>
+    <.detail_row label={gettext("Action")}>
+      <span class="badge badge-outline">{@log.action}</span>
+    </.detail_row>
+    <.detail_row label={gettext("User")}>
+      <%= if @log.user do %>
+        <span class="space-x-2">
+          <a href={"mailto:#{@log.user.email}"} class="link link-primary">{@log.user.email}</a>
+          <.link
+            navigate={~p"/admin/users/#{@log.user}"}
+            class="link link-primary *:inline"
+            aria-label={gettext("View profile for %{email}", email: @log.user.email)}
+          >
+            <ClaperWeb.Icons.eye />
+          </.link>
+        </span>
+      <% else %>
+        {empty_value()}
+      <% end %>
+    </.detail_row>
+    <.detail_row label={gettext("Timestamp")}>
+      {format_admin_timestamp(@log.inserted_at)}
+    </.detail_row>
+    <.detail_row label={gettext("Resource Type")} show={!is_nil(@log.resource_type)}>
+      {@log.resource_type}
+    </.detail_row>
+    <.detail_row label={gettext("Resource ID")} show={!is_nil(@log.resource_id)}>
+      {@log.resource_id}
+    </.detail_row>
+    <.detail_row label={gettext("Metadata")}>
+      <%= if @log.metadata && map_size(@log.metadata) > 0 do %>
+        <dl class="space-y-2 min-w-min">
+          <%= for {key, value} <- @log.metadata do %>
+            <div class="ml-5 -indent-5">
+              <dt class="inline font-medium">{key}:</dt>
+              <dd class="inline">{value}</dd>
+            </div>
+          <% end %>
+        </dl>
+      <% else %>
+        {empty_value()}
+      <% end %>
+    </.detail_row>
+  </.detail_card>
+<% end %>

@@ -1,0 +1,68 @@
+# Hostinger Docker Manager ("Compose from URL" / repository deploy).
+#
+# Matches the Traefik project Hostinger ships: Traefik runs with
+# network_mode: host, docker provider, exposedbydefault=false, entrypoints
+# web/websecure and the certificate resolver "letsencrypt".
+#
+# Deploy: Docker Manager -> Compose -> repository URL, compose file
+# docker-compose.hostinger.yml, environment from .env.example.
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB:-openpresenter}", "-U", "${POSTGRES_USER:-openpresenter}"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openpresenter}
+      POSTGRES_USER: ${POSTGRES_USER:-openpresenter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  app:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      BASE_URL: ${BASE_URL}
+      DATABASE_URL: ecto://${POSTGRES_USER:-openpresenter}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB:-openpresenter}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ENABLE_ACCOUNT_CREATION: ${ENABLE_ACCOUNT_CREATION:-false}
+      EMAIL_CONFIRMATION: ${EMAIL_CONFIRMATION:-false}
+      SECURE_COOKIE: "true"
+      SAME_SITE_COOKIE: Lax
+      PRESENTATION_STORAGE: local
+      PRESENTATION_STORAGE_DIR: /app/uploads
+      MAX_FILE_SIZE_MB: ${MAX_FILE_SIZE_MB:-15}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-local}
+      MAIL_FROM: ${MAIL_FROM:-noreply@example.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Open Presenter}
+      REMOTE_IP_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      OFFICE_ADDIN_ID: ${OFFICE_ADDIN_ID:-5f2b4d0e-8c1a-4c6e-9a3b-0a4d6e7f8b91}
+      WORD_CLOUD_PROFANITY_WORDS: ${WORD_CLOUD_PROFANITY_WORDS:-}
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "4000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:4000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      timeout: 5s
+    depends_on:
+      db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.open-presenter.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.open-presenter.entrypoints=websecure
+      - traefik.http.routers.open-presenter.tls.certresolver=letsencrypt
+      - traefik.http.services.open-presenter.loadbalancer.server.port=4000
+
+volumes:
+  postgres-data:
+  uploads:

@@ -1,0 +1,100 @@
+<div>
+  <div class="relative min-h-screen grid bg-black">
+    <div class="flex min-h-screen flex-col md:flex-row items-stretch">
+      <div
+        class="hidden md:flex md:w-1/2 xl:w-3/5 flex-auto items-end justify-start overflow-hidden bg-cover bg-center p-10 text-white relative"
+        style="background-image: url(/images/client-login.jpg);"
+      >
+        <div class="absolute inset-0 bg-gradient-to-br from-black via-black/55 to-primary-900/70">
+        </div>
+        <div class="relative z-10 max-w-2xl space-y-8">
+          <img src="/images/logo-white.svg" class="w-auto h-16 lg:h-20" />
+
+          <div class="space-y-4">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-primary-200">
+              {gettext("Get back on stage")}
+            </p>
+            <h1 class="text-4xl font-bold leading-tight text-white lg:text-6xl">
+              {gettext("Your sessions and audience data are right where you left them.")}
+            </h1>
+            <p class="max-w-xl text-lg leading-8 text-gray-100/90 lg:text-xl">
+              {gettext(
+                "We'll send a reset link so you can set a new password and get back to presenting."
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex w-full items-center justify-center p-8 md:w-1/2 md:p-10 lg:p-14 xl:w-2/5">
+        <div class="w-full max-w-xl">
+          <div class="space-y-6">
+            <div class="text-center md:text-left">
+              <a href="/" class="inline-flex items-center">
+                <img src="/images/logo.svg" class="h-10 w-auto" />
+              </a>
+
+              <p class="mt-8 text-sm font-semibold uppercase tracking-[0.3em] text-primary-300">
+                {gettext("Forgot password")}
+              </p>
+              <h2 class="mt-4 text-4xl font-bold text-white lg:text-5xl">
+                {gettext("Reset your password")}
+              </h2>
+              <p class="mt-4 text-base leading-7 text-gray-300">
+                {gettext("Enter your email address and we'll send reset instructions right away.")}
+              </p>
+            </div>
+
+            <.form :let={f} for={@changeset} action={~p"/users/reset_password"} class="space-y-5">
+              <%= if @changeset.action do %>
+                <ClaperWeb.Component.Alert.error
+                  message={gettext("Oops, check that all fields are filled in correctly.")}
+                  stick={true}
+                />
+              <% end %>
+
+              <ClaperWeb.Component.Input.email
+                form={f}
+                key={:email}
+                labelClass="text-white"
+                fieldClass="bg-gray-900/80 text-white border border-white/10"
+                name={gettext("Email")}
+                placeholder={gettext("you@example.com")}
+                autofocus="true"
+                required="true"
+              />
+
+              <div class="pt-3">
+                <button type="submit" class="btn btn-primary w-full">
+                  {gettext("Send link to reset password")}
+                </button>
+              </div>
+            </.form>
+
+            <div class="space-y-4 border-t border-white/10 pt-6 text-center md:text-left">
+              <p class="text-sm text-gray-300">
+                {gettext("Remembered it?")}
+                {" "}
+                {link(gettext("Back to log in"),
+                  to: ~p"/users/log_in",
+                  class: "font-semibold text-primary-300 transition hover:text-primary-200"
+                )}
+              </p>
+
+              <%= if Application.get_env(:claper, :enable_account_creation) do %>
+                <p class="text-sm text-gray-300">
+                  {gettext("Still new here?")}
+                  {" "}
+                  {link(gettext("Create account"),
+                    to: ~p"/users/register",
+                    class: "font-semibold text-primary-300 transition hover:text-primary-200"
+                  )}
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

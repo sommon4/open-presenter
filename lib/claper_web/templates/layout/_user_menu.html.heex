@@ -1,0 +1,27 @@
+<li>
+  <a href={~p"/users/settings"}>
+    {gettext("My account")}
+  </a>
+</li>
+<li :if={Claper.Accounts.user_has_role?(@user, "admin")}>
+  <a href={~p"/admin"}>
+    {gettext("Admin")}
+  </a>
+</li>
+<li>
+  <a href="https://docs.claper.co">
+    {gettext("Documentation")}
+  </a>
+</li>
+<li>
+  {link(gettext("Logout"),
+    to: ~p"/users/log_out",
+    method: :delete,
+    class: "text-error"
+  )}
+</li>
+<li class="menu-title pointer-events-none">
+  <span class="text-xs text-gray-400">
+    Version {Application.spec(:claper, :vsn)}
+  </span>
+</li>

@@ -1,0 +1,248 @@
+<div>
+  <.form
+    :let={f}
+    for={@changeset}
+    id="form-quiz"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+    class="flex flex-col gap-6"
+  >
+    <.text_field
+      form={f}
+      key={:title}
+      label={gettext("Title")}
+      placeholder={gettext("Enter a title")}
+      autocomplete="off"
+      required
+      autofocus
+    />
+
+    <% question_count = Ecto.Changeset.get_field(@changeset, :quiz_questions) |> length() %>
+    <div class="flex flex-col gap-2">
+      <div class="flex flex-wrap items-center gap-1">
+        <%= for i <- 0..(question_count - 1) do %>
+          <button
+            type="button"
+            phx-click="set_current_quiz_question_index"
+            phx-value-index={i}
+            phx-target={@myself}
+            class={[
+              "size-8 rounded-full text-sm font-bold flex items-center justify-center transition-colors",
+              if(@current_quiz_question_index == i,
+                do: "bg-primary-50 text-primary border-b-2 border-primary",
+                else: "bg-base-200 text-base-content hover:bg-base-300"
+              )
+            ]}
+          >
+            {i + 1}
+          </button>
+        <% end %>
+        <%= if question_count < 10 do %>
+          <button
+            type="button"
+            phx-click="add_quiz_question"
+            phx-target={@myself}
+            class="btn btn-sm bg-base-200 text-base-content border-none hover:bg-base-300 gap-1.5 !h-8"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="h-4 w-4"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            {gettext("Add a question")}
+          </button>
+        <% end %>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <%= inputs_for f, :quiz_questions, fn q -> %>
+          <div class={[
+            "flex flex-col gap-4 p-4 border border-gray-200 rounded-2xl",
+            if(@current_quiz_question_index != q.index, do: "hidden")
+          ]}>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center justify-center size-12 rounded-full bg-base-200 text-base-content font-bold shrink-0">
+                {q.index + 1}
+              </div>
+              <p class="font-bold text-base text-base-content">
+                {gettext("Question %{number}", number: q.index + 1)}
+              </p>
+            </div>
+
+            <.text_field
+              form={q}
+              key={:content}
+              label={gettext("Your question")}
+              placeholder={gettext("Enter your question")}
+              autocomplete="off"
+              required
+            />
+
+            <%= if Keyword.has_key?(q.errors, :quiz_question_opts) do %>
+              <p class="text-supporting-red-500 text-sm">
+                {elem(Keyword.get(q.errors, :quiz_question_opts), 0)}
+              </p>
+            <% end %>
+
+            <%= inputs_for q, :quiz_question_opts, fn o -> %>
+              <% is_correct =
+                (o.source.changes[:is_correct] != nil && o.source.changes[:is_correct]) ||
+                  (!Map.has_key?(o.source.changes, :is_correct) && o.source.data.is_correct) %>
+              <div id={"answer-#{q.index}-#{o.index}"}>
+                <.text_field
+                  form={o}
+                  key={:content}
+                  label={gettext("Answer %{index}", index: o.index + 1)}
+                  autocomplete="off"
+                  required
+                >
+                  <:trailing>
+                    <label
+                      title={gettext("Mark as correct answer")}
+                      class={[
+                        "btn btn-circle !size-12 shrink-0 border-none cursor-pointer",
+                        if(is_correct,
+                          do: "btn-success text-white",
+                          else: "bg-base-200 hover:bg-base-300 text-base-content/40"
+                        )
+                      ]}
+                    >
+                      {checkbox(o, :is_correct, class: "hidden")}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="h-6 w-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="m4.5 12.75 6 6 9-13.5"
+                        />
+                      </svg>
+                    </label>
+                    <%= if o.index > 1 do %>
+                      <label
+                        title={gettext("Delete answer")}
+                        class="btn btn-circle btn-error !size-12 shrink-0 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          name={"quiz[quiz_questions][#{q.index}][quiz_question_opts_delete][]"}
+                          value={o.index}
+                          class="hidden"
+                        />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          class="h-5 w-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 002 2h8a2 2 0 002-2l1-13M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+                          />
+                        </svg>
+                      </label>
+                    <% end %>
+                  </:trailing>
+                </.text_field>
+              </div>
+            <% end %>
+
+            <button
+              type="button"
+              phx-click="add_quiz_question_opt"
+              phx-value-question_index={q.index}
+              phx-target={@myself}
+              class="btn btn-sm bg-base-200 text-base-content border-none hover:bg-base-300 gap-1.5 self-start !h-9"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                class="h-4 w-4"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {gettext("Add an answer")}
+            </button>
+
+            <%= if question_count > 1 do %>
+              <label
+                phx-click="remove_quiz_question"
+                phx-target={@myself}
+                class="btn btn-outline btn-error w-full cursor-pointer"
+              >
+                {gettext("Remove question")}
+                <input
+                  type="checkbox"
+                  name="quiz[quiz_questions_delete][]"
+                  value={q.index}
+                  class="hidden"
+                />
+              </label>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <p class="text-sm font-bold text-base-content">{gettext("Options")}</p>
+
+      <.checkbox form={f} key={:allow_anonymous} label={gettext("Allow anonymous submissions")} />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <button
+        type="submit"
+        phx-disable-with={gettext("Loading...")}
+        disabled={!@changeset.valid?}
+        class="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {case @live_action do
+          :new -> gettext("Create quiz")
+          :edit -> gettext("Save")
+        end}
+      </button>
+
+      <%= if @live_action == :edit do %>
+        {link(gettext("Delete"),
+          to: "#",
+          phx_click: "delete",
+          phx_target: @myself,
+          phx_value_id: @quiz.id,
+          data: [
+            confirm:
+              gettext(
+                "This will delete all responses associated and the quiz itself, are you sure?"
+              )
+          ],
+          class: "btn btn-outline btn-error w-full"
+        )}
+        <div class="text-center">
+          <%= link to: ~p"/export/quizzes/#{@quiz.id}/qti",
+                   class: "text-xs text-primary-500 font-medium inline-flex items-center gap-1",
+                   method: :post,
+                   target: "_blank" do %>
+            {gettext("Export to QTI (XML)")}
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </.form>
+</div>

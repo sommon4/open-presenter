@@ -1,0 +1,84 @@
+<div>
+  <.form
+    :let={f}
+    for={@changeset}
+    id="embed-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+    class="flex flex-col gap-6"
+  >
+    <div class="flex flex-col gap-4">
+      <.text_field
+        form={f}
+        key={:title}
+        label={gettext("Title")}
+        placeholder={gettext("Enter your title")}
+        autocomplete="off"
+        required
+        autofocus
+      />
+
+      <div class="flex gap-4 items-end">
+        <div class="w-44 shrink-0">
+          <.select_field
+            form={f}
+            key={:provider}
+            label={gettext("Provider")}
+            options={@providers}
+            required
+          />
+        </div>
+        <div class="flex-1 min-w-0">
+          <.text_field
+            form={f}
+            key={:content}
+            label={
+              if Ecto.Changeset.get_field(@changeset, :provider) == "custom",
+                do: gettext("Iframe code"),
+                else: gettext("Link to the content")
+            }
+            placeholder={gettext("Add a link")}
+            autocomplete="off"
+            required
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <p class="text-sm font-bold text-base-content">{gettext("Options")}</p>
+
+      <.checkbox
+        form={f}
+        key={:attendee_visibility}
+        label={gettext("Attendees can view the web content on their device")}
+      />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <button
+        type="submit"
+        phx-disable-with={gettext("Loading...")}
+        class="btn btn-primary w-full"
+      >
+        {case @live_action do
+          :new -> gettext("Add web content")
+          :edit -> gettext("Save")
+        end}
+      </button>
+      <%= if @live_action == :edit do %>
+        {link(gettext("Delete"),
+          to: "#",
+          phx_click: "delete",
+          phx_target: @myself,
+          phx_value_id: @embed.id,
+          data: [
+            confirm: gettext("This will delete the web content, are you sure?")
+          ],
+          class: "btn btn-outline btn-error w-full"
+        )}
+      <% end %>
+    </div>
+  </.form>
+</div>

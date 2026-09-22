@@ -1,0 +1,240 @@
+defmodule Claper.FormsTest do
+  use Claper.DataCase
+
+  alias Claper.Forms
+
+  describe "forms" do
+    alias Claper.Forms.Form
+
+    import Claper.{FormsFixtures, PresentationsFixtures}
+
+    @invalid_attrs %{title: nil}
+
+    test "list_forms/1 returns all forms from a presentation" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      forms = Forms.list_forms(presentation_file.id)
+      assert [%Form{} | _] = forms
+      assert length(forms) == 1
+      assert hd(forms).id == form.id
+    end
+
+    test "list_forms_at_position/2 returns all forms from a presentation at a given position" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id, position: 5})
+
+      forms = Forms.list_forms_at_position(presentation_file.id, 5)
+      assert [%Form{} | _] = forms
+      assert length(forms) == 1
+      assert hd(forms).id == form.id
+      assert hd(forms).position == 5
+    end
+
+    test "get_form!/1 returns the form with given id" do
+      presentation_file = presentation_file_fixture()
+
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+      fetched_form = Forms.get_form!(form.id)
+
+      assert fetched_form.id == form.id
+      assert fetched_form.position == form.position
+      assert fetched_form.title == form.title
+      assert fetched_form.fields == form.fields
+    end
+
+    test "create_form/1 with valid data creates a form" do
+      presentation_file = presentation_file_fixture()
+
+      valid_attrs = %{
+        title: "some title",
+        presentation_file_id: presentation_file.id,
+        position: 0,
+        fields: [
+          %{name: "some option 1", type: "text", required: false},
+          %{name: "some option 2", type: "email"}
+        ]
+      }
+
+      assert {:ok, %Form{} = form} = Forms.create_form(valid_attrs)
+      assert form.title == "some title"
+      assert Enum.at(form.fields, 0) |> Map.fetch!(:required) == false
+      assert Enum.at(form.fields, 1) |> Map.fetch!(:required) == true
+    end
+
+    test "create_form/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Forms.create_form(@invalid_attrs)
+    end
+
+    test "update_form/3 with valid data updates the form" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+      update_attrs = %{title: "some updated title"}
+
+      assert {:ok, %Form{} = form} =
+               Forms.update_form(presentation_file.event_id, form, update_attrs)
+
+      assert form.title == "some updated title"
+    end
+
+    test "update_form/3 with invalid data returns error changeset" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      assert {:error, %Ecto.Changeset{}} =
+               Forms.update_form(presentation_file.event_id, form, @invalid_attrs)
+
+      fetched_form = Forms.get_form!(form.id)
+
+      assert fetched_form.title == form.title
+    end
+
+    test "delete_form/2 deletes the form" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      assert {:ok, %Form{}} = Forms.delete_form(presentation_file.event_id, form)
+      assert_raise Ecto.NoResultsError, fn -> Forms.get_form!(form.id) end
+    end
+
+    test "change_form/1 returns a form changeset" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+      assert %Ecto.Changeset{} = Forms.change_form(form)
+    end
+
+    test "get_form_for_event/3 returns form when it belongs to the event" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      fetched_form = Forms.get_form_for_event(form.id, presentation_file.event_id)
+      assert fetched_form.id == form.id
+    end
+
+    test "get_form_for_event/3 returns nil when form belongs to a different event" do
+      presentation_file_a = presentation_file_fixture()
+      presentation_file_b = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file_a.id})
+
+      assert is_nil(Forms.get_form_for_event(form.id, presentation_file_b.event_id))
+    end
+
+    test "get_form_for_event/3 returns nil for nonexistent form id" do
+      presentation_file = presentation_file_fixture()
+      assert is_nil(Forms.get_form_for_event(-1, presentation_file.event_id))
+    end
+  end
+
+  describe "form_submits" do
+    import Claper.{FormsFixtures, PresentationsFixtures, AccountsFixtures}
+
+    test "get_form_submit_for_event/2 returns form submit when it belongs to the event" do
+      presentation_file = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file.id})
+      user = user_fixture()
+
+      {:ok, form_submit} =
+        Forms.create_form_submit(%{
+          form_id: form.id,
+          user_id: user.id,
+          response: %{"Name" => "Test"}
+        })
+
+      fetched = Forms.get_form_submit_for_event(form_submit.id, presentation_file.event_id)
+      assert fetched.id == form_submit.id
+    end
+
+    test "get_form_submit_for_event/2 returns nil when form submit belongs to a different event" do
+      presentation_file_a = presentation_file_fixture()
+      presentation_file_b = presentation_file_fixture()
+      form = form_fixture(%{presentation_file_id: presentation_file_a.id})
+      user = user_fixture()
+
+      {:ok, form_submit} =
+        Forms.create_form_submit(%{
+          form_id: form.id,
+          user_id: user.id,
+          response: %{"Name" => "Test"}
+        })
+
+      assert is_nil(Forms.get_form_submit_for_event(form_submit.id, presentation_file_b.event_id))
+    end
+
+    test "get_form_submit/2 returns the form_submit with given id and user id" do
+      form_submit = form_submit_fixture()
+      assert Forms.get_form_submit(form_submit.user_id, form_submit.form_id) == form_submit
+    end
+
+    test "create_or_update_form_submit/3 with valid data edit a form_submit" do
+      presentation_file = presentation_file_fixture(%{}, [:event])
+      f = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      assert {:ok, %Claper.Forms.FormSubmit{}} =
+               Forms.create_or_update_form_submit(
+                 presentation_file.event_id,
+                 %{
+                   "user_id" => presentation_file.event.user_id,
+                   "form_id" => f.id,
+                   "response" => %{:Test => "some option 1", :"Test 2" => "some option 2"}
+                 }
+               )
+    end
+
+    test "create_or_update_form_submit/2 with attendee_identifier creates a form_submit" do
+      presentation_file = presentation_file_fixture(%{}, [:event])
+      f = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      assert {:ok, %Claper.Forms.FormSubmit{} = form_submit} =
+               Forms.create_or_update_form_submit(
+                 presentation_file.event.uuid,
+                 %{
+                   "attendee_identifier" => "test-attendee-123",
+                   "form_id" => f.id,
+                   "response" => %{"Name" => "Daniel"}
+                 }
+               )
+
+      assert form_submit.attendee_identifier == "test-attendee-123"
+      assert is_nil(form_submit.user_id)
+      assert form_submit.form_id == f.id
+    end
+
+    test "create_or_update_form_submit/2 with attendee_identifier updates existing form_submit" do
+      presentation_file = presentation_file_fixture(%{}, [:event])
+      f = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      {:ok, _first_submit} =
+        Forms.create_or_update_form_submit(
+          presentation_file.event.uuid,
+          %{
+            "attendee_identifier" => "test-attendee-123",
+            "form_id" => f.id,
+            "response" => %{"Name" => "Daniel"}
+          }
+        )
+
+      assert {:ok, %Claper.Forms.FormSubmit{} = updated_submit} =
+               Forms.create_or_update_form_submit(
+                 presentation_file.event.uuid,
+                 %{
+                   "attendee_identifier" => "test-attendee-123",
+                   "form_id" => f.id,
+                   "response" => %{"Name" => "Updated Name"}
+                 }
+               )
+
+      assert updated_submit.response == %{"Name" => "Updated Name"}
+    end
+
+    test "create_or_update_form_submit/2 without user_id or attendee_identifier returns error" do
+      presentation_file = presentation_file_fixture(%{}, [:event])
+      f = form_fixture(%{presentation_file_id: presentation_file.id})
+
+      assert {:error, %Ecto.Changeset{}} =
+               Forms.create_form_submit(%{
+                 form_id: f.id,
+                 response: %{"Name" => "Daniel"}
+               })
+    end
+  end
+end

@@ -1,0 +1,56 @@
+# Compose variant WITHOUT an existing reverse proxy: brings its own Caddy
+# that terminates TLS with Let's Encrypt and proxies WebSockets.
+#
+#   docker compose -f docker-compose.standalone.yml up -d
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB:-openpresenter}", "-U", "${POSTGRES_USER:-openpresenter}"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openpresenter}
+      POSTGRES_USER: ${POSTGRES_USER:-openpresenter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/YOUR_USERNAME/open-presenter:latest}
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:4000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 40s
+      timeout: 5s
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    command: caddy reverse-proxy --from ${DOMAIN} --to app:4000
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  postgres-data:
+  uploads:
+  caddy-data:
+  caddy-config:

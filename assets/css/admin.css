@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import './theme-config.css';
+@plugin "daisyui";
+
+@utility btn {
+  @apply rounded-full !font-display text-small-body;
+}
+
+@utility input {
+  @apply rounded-full focus:outline-none focus-within:outline-none focus:border-2 focus-within:border-2 !font-display text-small-body transition-all;
+}
+
+@utility select {
+  @apply rounded-full focus:outline-none focus-within:outline-none focus:border-2 focus-within:border-2 !font-display text-small-body transition-all;
+}
+
+@utility label {
+  @apply ml-2;
+}
+
+@utility fieldset-legend {
+  @apply ml-3;
+}

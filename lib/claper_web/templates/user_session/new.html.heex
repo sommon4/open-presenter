@@ -1,0 +1,132 @@
+<div>
+  <div class="relative min-h-screen grid bg-black">
+    <div class="flex min-h-screen flex-col md:flex-row items-stretch">
+      <div
+        class="hidden md:flex md:w-1/2 xl:w-3/5 flex-auto items-end justify-start overflow-hidden bg-cover bg-center p-10 text-white relative"
+        style="background-image: url(/images/client-login.jpg);"
+      >
+        <div class="absolute inset-0 bg-gradient-to-br from-black via-black/55 to-primary-900/70">
+        </div>
+        <div class="relative z-10 max-w-2xl space-y-8">
+          <img src="/images/logo-white.svg" class="w-auto h-16 lg:h-20" />
+
+          <div class="space-y-4">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-primary-200">
+              {gettext("Your audience is waiting")}
+            </p>
+            <h1 class="text-4xl font-bold leading-tight text-white lg:text-6xl">
+              {gettext("Run live polls, Q&A, and reactions right from your slides.")}
+            </h1>
+            <p class="max-w-xl text-lg leading-8 text-gray-100/90 lg:text-xl">
+              {gettext(
+                "Open your dashboard, launch a session, and let your audience interact in real time."
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="flex w-full items-center justify-center p-8 md:w-1/2 md:p-10 lg:p-14 xl:w-2/5">
+        <div class="w-full max-w-xl">
+          <div class="space-y-6">
+            <div class="text-center md:text-left">
+              <a href="/" class="inline-flex items-center">
+                <img src="/images/logo.svg" class="h-10 w-auto" />
+              </a>
+
+              <p class="mt-8 text-sm font-semibold uppercase tracking-[0.3em] text-primary-300">
+                {gettext("Log in")}
+              </p>
+              <h2 class="mt-4 text-4xl font-bold text-white lg:text-5xl">
+                {gettext("Welcome back.")}
+              </h2>
+              <p class="mt-4 text-base leading-7 text-gray-300">
+                {gettext("Sign in to launch or manage your interactive sessions.")}
+              </p>
+            </div>
+
+            <.form
+              :let={f}
+              :if={!@password_login_disabled}
+              for={@conn}
+              action={~p"/users/log_in"}
+              as={:user}
+              class="space-y-5"
+            >
+              <%= if @error_message do %>
+                <ClaperWeb.Component.Alert.error message={@error_message} stick={true} />
+              <% end %>
+
+              <input type="hidden" name="remember" value="true" />
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ClaperWeb.Component.Input.email
+                  form={f}
+                  key={:email}
+                  labelClass="text-white sr-only"
+                  placeholder={gettext("Email address")}
+                  fieldClass="bg-gray-900/80 text-white border border-white/10"
+                  name={gettext("Email")}
+                  autofocus="true"
+                  required="true"
+                />
+                <ClaperWeb.Component.Input.password
+                  form={f}
+                  key={:password}
+                  labelClass="text-white sr-only"
+                  placeholder={gettext("Password")}
+                  fieldClass="bg-gray-900/80 text-white border border-white/10"
+                  name={gettext("Password")}
+                  required="true"
+                />
+              </div>
+
+              <div class="pt-3">
+                <button type="submit" class="btn btn-primary w-full">
+                  {gettext("Log in")}
+                </button>
+              </div>
+            </.form>
+
+            <div :if={@error_message && @password_login_disabled}>
+              <ClaperWeb.Component.Alert.error message={@error_message} stick={true} />
+            </div>
+
+            <div :if={@oidc_enabled}>
+              <%= link(
+                to: ~p"/users/oidc",
+                class:
+                  "flex w-full items-center justify-center gap-x-2 rounded-xl border border-secondary-500/70 px-4 py-3 text-sm font-medium text-white transition hover:bg-secondary-500/20"
+              ) do %>
+                <img width="24" src={@oidc_logo_url} />
+                <span>{gettext("Log in with %{provider}", provider: @oidc_provider_name)}</span>
+              <% end %>
+            </div>
+
+            <div
+              :if={!@password_login_disabled}
+              class="space-y-4 border-t border-white/10 pt-6 text-center md:text-left"
+            >
+              <p class="text-sm text-gray-300">
+                {link(gettext("Forgot your password?"),
+                  to: ~p"/users/reset_password",
+                  class: "font-semibold text-primary-300 transition hover:text-primary-200"
+                )}
+              </p>
+
+              <%= if Application.get_env(:claper, :enable_account_creation) do %>
+                <p class="text-sm text-gray-300">
+                  {gettext("Need a new account?")}
+                  {" "}
+                  {link(gettext("Create account"),
+                    to: ~p"/users/register",
+                    class: "font-semibold text-primary-300 transition hover:text-primary-200"
+                  )}
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

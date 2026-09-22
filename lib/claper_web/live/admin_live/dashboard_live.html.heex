@@ -1,0 +1,189 @@
+<!-- Header -->
+<div class="mb-6">
+  <h1 class="text-3xl font-bold">{gettext("Dashboard")}</h1>
+</div>
+
+<!-- Dashboard Content -->
+<div>
+  <!-- Stats Cards -->
+  <div class="stats w-full stats-horizontal shadow-md mb-12">
+    <div class="stat bg-base-100">
+      <div class="stat-title">{gettext("Total Users")}</div>
+      <div class="stat-value">{@stats.total_users}</div>
+      <div class="stat-desc">
+        <span class={
+          if @growth_metrics.users_growth > 0 do
+            "text-success"
+          else
+            "text-error"
+          end
+        }>
+          <%= if @growth_metrics.users_growth >= 0 do %>
+            ↗︎
+          <% else %>
+            ↘︎
+          <% end %>
+          {@growth_metrics.users_growth}%
+        </span>
+        {gettext("vs last month")}
+      </div>
+    </div>
+
+    <div class="stat bg-base-100">
+      <div class="stat-title">{gettext("Total Events")}</div>
+      <div class="stat-value">{@stats.total_events}</div>
+      <div class="stat-desc">
+        <span class={
+          if @growth_metrics.events_growth > 0 do
+            "text-success"
+          else
+            "text-error"
+          end
+        }>
+          <%= if @growth_metrics.events_growth >= 0 do %>
+            ↗︎ +
+          <% else %>
+            ↘︎
+          <% end %>
+          {@growth_metrics.events_growth}%
+        </span>
+        {gettext("vs last month")}
+      </div>
+    </div>
+
+    <div class="stat bg-base-100">
+      <div class="stat-title">{gettext("Active Events")}</div>
+      <div class="stat-value">{@stats.active_events}</div>
+      <div class="stat-desc">{gettext("Currently running")}</div>
+    </div>
+  </div>
+  
+<!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title">{gettext("User Growth")}</h2>
+        <p class="text-sm text-base-content/60">{gettext("Last 30 days")}</p>
+        <div class="h-72 relative mt-4">
+          <canvas
+            id="userGrowthChart"
+            phx-hook="UserGrowthChart"
+            data-labels={Jason.encode!(@users_chart_data.labels)}
+            data-values={Jason.encode!(@users_chart_data.values)}
+          >
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title">{gettext("Event Creation")}</h2>
+        <p class="text-sm text-base-content/60">{gettext("Last 30 days")}</p>
+        <div class="h-72 relative mt-4">
+          <canvas
+            id="eventCreationChart"
+            phx-hook="EventCreationChart"
+            data-labels={Jason.encode!(@events_chart_data.labels)}
+            data-values={Jason.encode!(@events_chart_data.values)}
+          >
+          </canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+<!-- Recent Events Table -->
+  <div class="mt-12">
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title mb-4">{gettext("Recent Events")}</h2>
+
+        <div class="overflow-x-auto">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>{gettext("Name")}</th>
+                <th>{gettext("Code")}</th>
+                <th>{gettext("Owner")}</th>
+                <th>{gettext("Start Date")}</th>
+                <th>{gettext("Audience Peak")}</th>
+                <th>{gettext("Status")}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for event <- @recent_events do %>
+                <% now = NaiveDateTime.utc_now() %>
+                <% {status_text, status_class} =
+                  cond do
+                    is_nil(event.expired_at) == false ->
+                      {gettext("Completed"), "badge-ghost"}
+
+                    NaiveDateTime.compare(event.started_at, now) == :gt ->
+                      {gettext("Scheduled"), "badge-info"}
+
+                    true ->
+                      {gettext("Active"), "badge-success"}
+                  end %>
+                <tr>
+                  <td>
+                    <.link navigate={~p"/admin/events/#{event}"} class="link font-bold">
+                      {event.name}
+                    </.link>
+                  </td>
+                  <td>
+                    <code class="text-sm uppercase">{event.code}</code>
+                  </td>
+                  <td>{event.user.email}</td>
+                  <td>{Calendar.strftime(event.started_at, "%b %d, %Y")}</td>
+                  <td>
+                    <div class="badge badge-outline">{event.audience_peak}</div>
+                  </td>
+                  <td>
+                    <div class={"badge #{status_class}"}>
+                      {status_text}
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <.link
+                        navigate={~p"/admin/events/#{event}/edit"}
+                        class="btn btn-link btn-xs text-primary"
+                        title={gettext("Edit event")}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          class="w-5 h-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                          />
+                        </svg>
+                      </.link>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+              <%= if Enum.empty?(@recent_events) do %>
+                <tr>
+                  <td colspan="7" class="text-center">
+                    <div class="py-8 text-base-content/60">
+                      {gettext("No events found")}
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

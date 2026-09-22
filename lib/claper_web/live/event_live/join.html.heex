@@ -1,0 +1,183 @@
+<style>
+  body {
+    background:
+      radial-gradient(circle at top, rgba(134, 17, 237, 0.18), transparent 35%),
+      radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.1), transparent 30%),
+      linear-gradient(180deg, #120641 0%, #0c0332 100%);
+    min-height: 100vh;
+  }
+
+  .join-code-input {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .join-code-input::placeholder {
+    color: rgba(255, 255, 255, 0.18);
+  }
+
+  .join-code-input:focus {
+    border-color: rgba(255, 255, 255, 0.65);
+    outline: none;
+  }
+
+  .join-code-input:-webkit-autofill,
+  .join-code-input:-webkit-autofill:hover,
+  .join-code-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+</style>
+
+<div class="min-h-screen">
+  <div
+    x-data="{open: false}"
+    id="menu"
+    class="w-full py-4 px-5 md:px-8 relative z-20"
+    phx-update="ignore"
+  >
+    <div class="flex items-center justify-between max-w-6xl mx-auto">
+      <img src="/images/logo.svg" class="h-8" />
+
+      <div
+        x-show="open"
+        x-transition
+        class="fixed inset-0 bg-secondary-500/95 z-50 md:hidden flex flex-col items-center justify-center space-y-6"
+        @click.away="open = false"
+      >
+        <button @click="open = false" class="absolute top-6 right-6">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            >
+            </path>
+          </svg>
+        </button>
+        <a
+          href="https://get.claper.co/"
+          class="text-lg font-semibold text-white hover:text-primary-300 transition-colors"
+        >
+          {gettext("About")}
+        </a>
+        <%= if @current_user do %>
+          <.link href={~p"/events"} class="btn btn-primary btn-lg">
+            {gettext("Dashboard")}
+          </.link>
+        <% else %>
+          <.link href={~p"/users/log_in"} class="btn btn-primary btn-lg">
+            {gettext("Log in")}
+          </.link>
+        <% end %>
+      </div>
+
+      <button @click="open = true" class="md:hidden p-2">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          >
+          </path>
+        </svg>
+      </button>
+
+      <div class="hidden md:flex items-center gap-6">
+        <a
+          href="https://get.claper.co/"
+          class="text-sm text-white/80 font-medium hover:text-white transition-colors"
+        >
+          {gettext("About")}
+        </a>
+        <%= if @current_user do %>
+          <.link href={~p"/events"} class="btn btn-primary">
+            {gettext("Dashboard")}
+          </.link>
+        <% else %>
+          <.link href={~p"/users/log_in"} class="btn btn-primary">
+            {gettext("Log in")}
+          </.link>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative z-10 flex flex-col justify-center px-5 pb-14 pt-10 md:px-8 md:pb-20 md:pt-16">
+    <div class="mx-auto w-full max-w-xl text-center">
+      <div class="mb-14 md:mb-16">
+        <h1 class="text-4xl font-bold text-white font-display md:text-5xl">
+          {gettext("Join the event")}
+        </h1>
+        <p class="mx-auto mt-4 max-w-md text-base text-white/60 md:text-lg">
+          {gettext("Enter the code shared by the presenter")}
+        </p>
+      </div>
+
+      <%= form_for :event, ~p"/join", ["phx-submit": "join", id: "form", class: "mx-auto max-w-lg"], fn f -> %>
+        <div>
+          <div class="mt-5 flex items-center gap-3 md:gap-4">
+            <span class="text-3xl font-semibold text-white/28 md:text-4xl">#</span>
+            {text_input(f, :code,
+              required: true,
+              autofocus: true,
+              maxlength: 10,
+              placeholder: "ABCD1234",
+              id: "input",
+              class:
+                "join-code-input w-full px-0 py-4 text-center text-3xl font-bold uppercase tracking-[0.28em] text-white md:text-5xl"
+            )}
+          </div>
+        </div>
+
+        <div class="mt-10 flex justify-center">
+          <button
+            type="submit"
+            id="submit"
+            phx-disable-with={gettext("Join")}
+            class="btn btn-gradient btn-lg min-w-44 px-10 shadow-none"
+          >
+            {gettext("Join")}
+          </button>
+        </div>
+
+        <%= if @last_event do %>
+          <div class="mt-10 border-t border-white/10 pt-6">
+            <p class="text-sm text-white/45">{gettext("Return to your last event")}</p>
+            <.link
+              href={~p"/e/#{@last_event.code}"}
+              class="mt-2 inline-flex items-center gap-2 text-base font-medium text-white hover:text-cyan-300 transition-colors"
+            >
+              <span>{@last_event.name}</span>
+              <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 7l-10 10M8 7h9v9"
+                >
+                </path>
+              </svg>
+            </.link>
+          </div>
+        <% end %>
+      <% end %>
+
+      <div class="mt-16 text-sm text-white/45">
+        <span>{gettext("Are you a presenter?")}</span>
+        <a
+          href="https://get.claper.co/"
+          class="ml-2 font-medium text-cyan-400 transition-colors hover:text-cyan-300"
+        >
+          {gettext("Start creating for free")}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+defmodule Claper.DataCase do
+  @moduledoc """
+  This module defines the setup for tests requiring
+  access to the application's data layer.
+
+  You may define functions here to be used as helpers in
+  your tests.
+
+  Finally, if the test case interacts with the database,
+  we enable the SQL sandbox, so changes done to the database
+  are reverted at the end of every test. If you are using
+  PostgreSQL, you can even run database tests asynchronously
+  by setting `use Claper.DataCase, async: true`, although
+  this option is not recommended for other databases.
+  """
+
+  use ExUnit.CaseTemplate
+
+  using do
+    quote do
+      use Oban.Testing, repo: Claper.Repo
+      alias Claper.Repo
+
+      import Ecto
+      import Ecto.Changeset
+      import Ecto.Query
+      import Claper.DataCase
+    end
+  end
+
+  setup context do
+    # Don't check out a connection if a setup_all did so already
+    if context[:sandbox_owner_pid] == nil do
+      pid = Ecto.Adapters.SQL.Sandbox.start_owner!(Claper.Repo, shared: not context[:async])
+
+      on_exit(fn ->
+        drain_task_supervisor(Claper.TaskSupervisor)
+        Ecto.Adapters.SQL.Sandbox.stop_owner(pid)
+      end)
+    end
+
+    :ok
+  end
+
+  defp drain_task_supervisor(supervisor) do
+    supervisor
+    |> Task.Supervisor.children()
+    |> Enum.each(fn pid ->
+      ref = Process.monitor(pid)
+
+      receive do
+        {:DOWN, ^ref, :process, ^pid, _} -> :ok
+      after
+        1_000 -> Process.demonitor(ref, [:flush])
+      end
+    end)
+  end
+
+  @doc """
+  A helper that transforms changeset errors into a map of messages.
+
+      assert {:error, changeset} = Accounts.create_user(%{password: "short"})
+      assert "password is too short" in errors_on(changeset).password
+      assert %{password: ["password is too short"]} = errors_on(changeset)
+
+  """
+  def errors_on(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
+      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+  end
+end
