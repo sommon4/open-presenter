@@ -212,6 +212,7 @@ body,
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 .footer {
@@ -356,6 +357,26 @@ body,
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+/* The QR code scales with the frame (height based), never with the canvas pixels */
+.join:not(.join-big) .join-qr {
+  width: calc(clamp(56px, 22cqh, 160px) * var(--scale, 1));
+  height: auto;
+  flex-shrink: 0;
+}
+
+.join-big .join-qr {
+  width: calc(clamp(120px, 55cqh, 520px) * var(--scale, 1));
+  max-width: 90cqw;
+  height: auto;
+}
+
+.join-text {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .join-big {
@@ -371,7 +392,7 @@ body,
 }
 
 .join-label {
-  font-size: 12px;
+  font-size: calc(clamp(10px, 2.6cqh, 18px) * var(--scale, 1));
   color: var(--muted);
 }
 
@@ -380,8 +401,9 @@ body,
 }
 
 .join-url {
-  font-size: 13px;
+  font-size: calc(clamp(11px, 3cqh, 22px) * var(--scale, 1));
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .join-big .join-url {
@@ -389,7 +411,7 @@ body,
 }
 
 .join-code {
-  font-size: 18px;
+  font-size: calc(clamp(14px, 4.5cqh, 34px) * var(--scale, 1));
   font-weight: 800;
   letter-spacing: 0.1em;
 }

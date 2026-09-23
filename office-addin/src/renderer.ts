@@ -30,10 +30,15 @@ export async function renderJoinPanel(container: HTMLElement, event: ApiEvent, b
   const panel = el("div", big ? "join join-big" : "join");
   const canvas = el("canvas", "join-qr");
   try {
-    await QRCode.toCanvas(canvas, event.join_url, { width: big ? 240 : 96, margin: 1 });
+    // render at a fixed high resolution; CSS (.join-qr) sets the displayed size
+    await QRCode.toCanvas(canvas, event.join_url, { width: big ? 640 : 320, margin: 1 });
   } catch (_e) {
     // QR generation failed; the URL text is still shown
   }
+  // the qrcode library writes an inline width/height in px; drop it so the
+  // stylesheet (.join-qr) can size the code with the frame
+  canvas.style.width = "";
+  canvas.style.height = "";
   panel.appendChild(canvas);
   const text = el("div", "join-text");
   text.appendChild(el("div", "join-label", big ? "Scan to interact" : "Scan to answer"));
